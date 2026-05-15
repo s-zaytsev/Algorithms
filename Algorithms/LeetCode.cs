@@ -6,6 +6,87 @@ using System.Text;
 
 class LeetCode
 {
+    public int MyAtoi(string s)
+    {
+        if (s.Length == 0) return 0;
+        var result = 0;
+
+        bool isNegative = false;
+        int index = 0;
+
+        while (index < s.Length)
+        {
+
+            if (char.IsWhiteSpace(s[index]))
+            {
+                index++;
+                continue;
+            }
+
+            if (s[index] == '-')
+            {
+                isNegative = true;
+                index++;
+                break;
+            }
+
+            if (s[index] == '+')
+            {
+                index++;
+                break;
+            }
+            
+            if (s[index] != ' ' || s[index] != '-' || s[index] != '+') break;
+        }
+
+        while (index < s.Length)
+        {
+            if (!char.IsDigit(s[index])) break;
+
+            var value = s[index] - '0';
+
+            if (result > (int.MaxValue - value) / 10)
+            {
+                return !isNegative ? int.MaxValue : int.MinValue;
+            }
+
+            result = result * 10 + value;
+
+            index++;
+        }
+
+        return !isNegative ? result : -result;
+    }
+
+    public void DeleteNode(ListNode node)
+    {
+        node.val = node.next.val;
+        node.next = node.next.next;
+    }
+
+    public int[] SortArrayByParity(int[] nums)
+    {
+        var left = 0;
+        var right = nums.Length - 1;
+
+        while (left < right)
+        {
+            if (nums[left] % 2 != 0)
+            {
+                var temp = nums[left];
+                nums[left] = nums[right];
+                nums[right] = temp;
+                right--;
+            }
+            else
+            {
+                left++;
+            }
+        }
+
+        return nums;
+    }
+
     public int CountSegments(string s)
     {
         if (string.IsNullOrWhiteSpace(s)) return 0;
@@ -5481,19 +5562,19 @@ class LeetCode
         return new string(array);
     }
 
-/*    public int SumRootToLeaf(TreeNode root)
-    {
-        var result = 0;
-        var strs = new List<string>();
-        SumRootToLeafDFS(root, "", strs);
-
-        foreach (var str in strs)
+    /*    public int SumRootToLeaf(TreeNode root)
         {
-            result += Convert.ToInt32(str, 2);
-        }
+            var result = 0;
+            var strs = new List<string>();
+            SumRootToLeafDFS(root, "", strs);
 
-        return result;
-    }*/
+            foreach (var str in strs)
+            {
+                result += Convert.ToInt32(str, 2);
+            }
+
+            return result;
+        }*/
 
     private void SumRootToLeafDFS(TreeNode root, string current, IList<string> strs)
     {
