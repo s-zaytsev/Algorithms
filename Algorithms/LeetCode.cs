@@ -6,6 +6,87 @@ using System.Text;
 
 class LeetCode
 {
+    public IList<int> SpiralOrder(int[][] matrix)
+    {
+        var result = new int[matrix.Length * matrix[0].Length];
+        var index = 0;
+
+        var top = 0;
+        var left = 0;
+
+        var bottom = matrix.Length - 1;
+        var right = matrix[0].Length - 1;
+
+
+        while (top <= bottom && left <= right)
+        {
+            for (int i = left; i <= right; i++)
+            {
+                result[index++] = matrix[top][i];
+            }
+
+            top++;
+
+            for (int i = top; i <= bottom; i++)
+            {
+                result[index++] = matrix[i][right];
+            }
+
+            right--;
+
+            if (top <= bottom)
+            {
+                for (int i = right; i >= left; i--)
+                {
+                    result[index++] = matrix[bottom][i];
+                }
+
+                bottom--;
+            }
+
+            if (left <= right)
+            {
+                for (int i = bottom; i >= top; i--)
+                {
+                    result[index++] = matrix[i][left];
+                }
+
+                left++;
+            }
+        }
+
+        return result;
+    }
+
+    public int FindMin(int[] nums)
+    {
+        int left = 0;
+        int right = nums.Length - 1;
+
+        while (left < right)
+        {
+            if (nums[left] < nums[right]) return nums[left];
+
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] > nums[right]) left = mid + 1;
+            else if (nums[mid] < nums[left]) right = mid;
+            else
+            {
+                var min = nums[mid];
+
+                while (left < right)
+                {
+                    min = Math.Min(min, Math.Min(nums[left++], nums[right--]));
+                }
+
+                return min;
+            }
+        }
+
+        return nums[left];
+    }
+
     public int MyAtoi(string s)
     {
         if (s.Length == 0) return 0;
@@ -35,7 +116,7 @@ class LeetCode
                 index++;
                 break;
             }
-            
+
             if (s[index] != ' ' || s[index] != '-' || s[index] != '+') break;
         }
 
@@ -3967,7 +4048,7 @@ class LeetCode
         return -1;
     }
 
-    public int FindMin(int[] nums)
+    public int FindMin1(int[] nums)
     {
         var left = 0;
         var right = nums.Length - 1;
