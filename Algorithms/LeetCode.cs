@@ -6,6 +6,92 @@ using System.Text;
 
 class LeetCode
 {
+    //[
+    //[1,2,3,4],
+    //[5,0,7,8],
+    //[0,10,11,12],
+    //[13,14,15,0]]
+
+    //[
+    //[0,1,2,0],
+    //[3,4,5,2],
+    //[1,3,1,5]
+    //]
+    public void SetZeroes(int[][] matrix)
+    {
+        var queue = new Queue<(int row, int column)>();
+        var visited = new bool[matrix.Length, matrix[0].Length];
+
+        for (int row = 0; row < matrix.Length; row++)
+        {
+            for (int column = 0; column < matrix[row].Length; column++)
+            {
+                if (matrix[row][column] != 0 || visited[row, column]) continue;
+
+                SetZeroesDFS(matrix, row, column, (1, 0), visited);
+                SetZeroesDFS(matrix, row, column, (-1, 0), visited);
+                SetZeroesDFS(matrix, row, column, (0, 1), visited);
+                SetZeroesDFS(matrix, row, column, (0, -1), visited);
+            }
+        }
+    }
+
+    private void SetZeroesDFS(int[][] matrix, int row, int column, (int rowShift, int columnShift) direction, bool[,] visited)
+    {
+        var shiftedRow = row + direction.rowShift;
+        var shiftedColumn = column + direction.columnShift;
+
+        if (shiftedRow < 0 ||
+            shiftedColumn < 0 ||
+            shiftedRow >= matrix.Length ||
+            shiftedColumn >= matrix[shiftedRow].Length)
+            return;
+
+        if (matrix[shiftedRow][shiftedColumn] != 0)
+        {
+            matrix[shiftedRow][shiftedColumn] = 0;
+            visited[shiftedRow, shiftedColumn] = true;
+        }
+
+        SetZeroesDFS(matrix, shiftedRow, shiftedColumn, direction, visited);
+    }
+
+    public int[] FindThePrefixCommonArray(int[] A, int[] B)
+    {
+        var arr = new int[A.Length + 1];
+        var result = new int[A.Length];
+
+        var count = 0;
+
+        for (int i = 0; i < A.Length; i++)
+        {
+            arr[A[i]]++;
+            if (arr[A[i]] == 2) count++;
+
+            arr[B[i]]++;
+            if (arr[B[i]] == 2) count++;
+
+            result[i] = count;
+        }
+
+        return result;
+    }
+
+    public int GetCommon(int[] nums1, int[] nums2)
+    {
+        var left = 0;
+        var right = 0;
+
+        while (left < nums1.Length && right < nums2.Length)
+        {
+            if (nums1[left] == nums2[right]) return nums1[left];
+            else if (nums1[left] < nums2[right]) left++;
+            else right++;
+        }
+
+        return -1;
+    }
+
     public IList<int> SpiralOrder(int[][] matrix)
     {
         var result = new int[matrix.Length * matrix[0].Length];
@@ -16,7 +102,6 @@ class LeetCode
 
         var bottom = matrix.Length - 1;
         var right = matrix[0].Length - 1;
-
 
         while (top <= bottom && left <= right)
         {
