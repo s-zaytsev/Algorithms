@@ -6,6 +6,71 @@ using System.Text;
 
 class LeetCode
 {
+    public bool Check(int[] nums)
+    {
+        var canSkip = nums[0] >= nums[nums.Length - 1];
+
+        for (int i = 0; i < nums.Length - 1; i++)
+        {
+            if (nums[i] > nums[i + 1] && canSkip)
+            {
+                canSkip = false;
+                continue;
+            }
+
+            if (nums[i] <= nums[i + 1]) continue;
+            return false;
+        }
+
+        return true;
+    }
+
+    public int ScoreOfString(string s)
+    {
+        var result = 0;
+
+        for (int i = 0; i < s.Length - 1; i++)
+        {
+            result += Math.Abs(s[i] - s[i + 1]);
+        }
+
+        return result;
+    }
+
+    public string LicenseKeyFormatting(string s, int k)
+    {
+        var sb = new StringBuilder();
+        var index = s.Length - 1;
+        var count = k;
+
+        while (index >= 0)
+        {
+            if (s[index] == '-')
+            {
+                index--;
+                continue;
+            }
+
+            if (count == 0)
+            {
+                sb.Append('-');
+                count = k;
+                continue;
+            }
+
+            sb.Append(char.ToUpper(s[index]));
+            index--;
+            count--;
+        }
+
+        for (int i = 0; i < sb.Length / 2; i++)
+        {
+            (sb[i], sb[sb.Length - i - 1]) = (sb[sb.Length - i - 1], sb[i]);
+        }
+
+        return sb.ToString();
+    }
+
     //[
     //[1,2,3,4],
     //[5,0,7,8],
