@@ -6,6 +6,233 @@ using System.Text;
 
 class LeetCode
 {
+    public int[] NumberOfLines(int[] widths, string s)
+    {
+        var lineCount = 1;
+        var length = 0;
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            var value = widths[s[i] - 'a'];
+
+            if (length + value > 100)
+            {
+                lineCount++;
+                length = 0;
+            }
+
+            length += value;
+        }
+
+        return [lineCount, length];
+    }
+
+    public string Multiply(string num1, string num2)
+    {
+        return $"{BigInteger.Parse(num1) * BigInteger.Parse(num2)}";
+    }
+
+    public int MinElement(int[] nums)
+    {
+        var minNum = int.MaxValue;
+
+        foreach (var num in nums)
+        {
+            var n = num;
+            var temp = 0;
+
+            while (n > 0)
+            {
+                temp += n % 10;
+                n /= 10;
+            }
+
+            if (temp < minNum)
+                minNum = temp;
+        }
+
+        return minNum;
+    }
+
+    public int GetMinimumDifference(TreeNode root)
+    {
+        if (root == null) return 0;
+
+        var queue = new Queue<TreeNode>();
+        queue.Enqueue(root);
+
+        var numbers = new List<int>();
+
+        while (queue.Count > 0)
+        {
+            var node = queue.Dequeue();
+            numbers.Add(node.val);
+
+            if (node.left != null) queue.Enqueue(node.left);
+            if (node.right != null) queue.Enqueue(node.right);
+        }
+
+        var result = int.MaxValue;
+
+        for (int i = 0; i < numbers.Count; i++)
+        {
+            for (int j = 0; j < numbers.Count; j++)
+            {
+                if (i == j) continue;
+                result = Math.Min(Math.Abs(numbers[i] - numbers[j]), result);
+            }
+        }
+
+        return result;
+    }
+
+
+    private readonly HashSet<char> vowels = ['a', 'e', 'i', 'o', 'u'];
+
+    public string ReverseVowels(string s)
+    {
+        var left = 0;
+        var right = s.Length - 1;
+
+        var charArray = s.ToCharArray();
+
+        while (left < right)
+        {
+            var leftLetter = char.ToLower(charArray[left]);
+            var rightLetter = char.ToLower(charArray[right]);
+
+            if (vowels.Contains(leftLetter) && vowels.Contains(rightLetter))
+            {
+                (charArray[left], charArray[right]) = (charArray[right], charArray[left]);
+                left++;
+                right--;
+            }
+            else if (vowels.Contains(leftLetter))
+            {
+                right--;
+            }
+            else if (vowels.Contains(rightLetter))
+            {
+                left++;
+            }
+            else
+            {
+                left++;
+                right--;
+            }
+        }
+
+        return new string(charArray);
+    }
+
+    public int NumberOfSpecialChars1(string word)
+    {
+        var lowers = new bool[26];
+        var uppers = new bool[26];
+
+        foreach (var letter in word)
+        {
+            if (char.IsLower(letter) && !lowers[letter - 'a'])
+                lowers[letter - 'a'] = true;
+
+            if (char.IsUpper(letter) && !uppers[letter - 'A'])
+                uppers[letter - 'A'] = true;
+        }
+
+        var result = 0;
+
+        for (int i = 0; i < 26; i++)
+        {
+            if (lowers[i] && uppers[i])
+                result++;
+        }
+
+        return result;
+    }
+
+    public string ReverseStr(string s, int k)
+    {
+        if (k <= 1) return s;
+
+        var charArray = s.ToCharArray();
+
+        var left = 0;
+        var right = Math.Min(k, s.Length) - 1;
+
+        while (right < s.Length)
+        {
+            var lastIndex = right;
+
+            while (left < right)
+            {
+                (charArray[right], charArray[left]) = (charArray[left], charArray[right]);
+                left++;
+                right--;
+            }
+
+            left = Math.Min(lastIndex + k + 1, s.Length - 1);
+            right = Math.Min(left + k - 1, s.Length - 1);
+
+            if (lastIndex + 1 == s.Length) break;
+        }
+
+        return new string(charArray);
+    }
+
+    public string ReverseWords(string s)
+    {
+        var sb = new StringBuilder();
+
+        var fast = s.Length - 1;
+
+        while (s[fast] == ' ' && fast >= 0) fast--;
+        var slow = fast;
+
+        while (fast >= 0)
+        {
+            if (s[fast] == ' ')
+            {
+                while (fast >= 0)
+                {
+                    if (fast < 0 || (fast > 0 && s[fast - 1] != ' '))
+                    {
+                        sb.Append(' ');
+                        fast--;
+                        slow = fast;
+                        break;
+                    }
+
+                    fast--;
+                }
+            }
+            else
+            {
+                while (fast >= 0)
+                {
+                    if (fast <= 0 || (fast > 0 && s[fast - 1] == ' '))
+                    {
+                        var lastIndex = fast - 1;
+
+                        while (fast <= slow)
+                        {
+                            sb.Append(s[fast]);
+                            fast++;
+                        }
+
+                        fast = lastIndex;
+                        slow = lastIndex;
+
+                        break;
+                    }
+
+                    fast--;
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
+
     public bool Check(int[] nums)
     {
         var canSkip = nums[0] >= nums[nums.Length - 1];
@@ -6073,7 +6300,7 @@ class LeetCode
         currentPath.RemoveAt(currentPath.Count - 1);
     }
 
-    public string ReverseWords(string s)
+    public string ReverseWords1(string s)
     {
         var charArray = s.ToCharArray();
 
@@ -6244,13 +6471,13 @@ class LeetCode
         return result;
     }
 
-    public int GetMinimumDifference(TreeNode root)
+    public int GetMinimumDifference1(TreeNode root)
     {
         if (root?.left == null && root?.right == null) return int.MaxValue;
 
         var left = Math.Abs(root.val - root?.left?.val ?? int.MaxValue);
         var right = Math.Abs(root.val - root?.right?.val ?? int.MaxValue);
-        return Math.Min(Math.Min(left, right), Math.Min(GetMinimumDifference(root.left), GetMinimumDifference(root.right)));
+        return Math.Min(Math.Min(left, right), Math.Min(GetMinimumDifference1(root.left), GetMinimumDifference1(root.right)));
     }
 
     public int SumOfLeftLeaves(TreeNode root)
@@ -6436,7 +6663,7 @@ class LeetCode
         }
     }
 
-    public string ReverseVowels(string s)
+    public string ReverseVowels1(string s)
     {
         if (s.Length < 2)
         {
