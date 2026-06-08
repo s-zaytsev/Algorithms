@@ -6,6 +6,325 @@ using System.Text;
 
 class LeetCode
 {
+    public ListNode ReverseBetween(ListNode head, int left, int right)
+    {
+        if (left == right) return head;
+
+        var headPointer = head;
+
+        ListNode start = null;
+        ListNode leftPointer = null;
+
+        var count = 1;
+
+        while (count <= right)
+        {
+            if (count == left)
+                leftPointer = headPointer;
+
+            if (leftPointer == null)
+                start = headPointer;
+
+            headPointer = headPointer.next;
+            count++;
+        }
+
+        count = right - left;
+
+        ListNode prev = headPointer;
+
+        while (count >= 0)
+        {
+            var next = leftPointer.next;
+            leftPointer.next = prev;
+            prev = leftPointer;
+            leftPointer = next;
+
+            count--;
+        }
+
+        if (start == null) return prev;
+
+        start.next = prev;
+        return head;
+    }
+
+    public void Flatten(TreeNode root)
+    {
+        if (root == null) return;
+
+        var rootPointer = root;
+        var stack = new Stack<TreeNode>();
+        FlattenDFS(root.right, stack);
+        FlattenDFS(root.left, stack);
+
+        root.left = null;
+
+        while (stack.Count > 0)
+        {
+            rootPointer.left = null;
+            rootPointer.right = stack.Pop();
+            rootPointer = rootPointer.right;
+        }
+    }
+
+    public void FlattenDFS(TreeNode node, Stack<TreeNode> stack)
+    {
+        if (node == null) return;
+
+        FlattenDFS(node.right, stack);
+        FlattenDFS(node.left, stack);
+        stack.Push(node);
+    }
+
+    public int GetDecimalValue(ListNode head)
+    {
+        var sb = new StringBuilder();
+
+        var headPointer = head;
+
+        while (headPointer != null)
+        {
+            sb.Append(headPointer.val);
+            headPointer = headPointer.next;
+        }
+
+        if (sb.Length == 0) return 0;
+
+        return Convert.ToInt32(sb.ToString(), 2);
+    }
+
+
+
+    public int[] LeftRightDifference(int[] nums)
+    {
+        var result = new int[nums.Length];
+        var left = new int[nums.Length];
+        var right = new int[nums.Length];
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            left[i] = nums[i - 1] + left[i - 1];
+        }
+
+        for (int i = nums.Length - 2; i >= 0; i--)
+        {
+            right[i] = nums[i + 1] + right[i + 1];
+        }
+
+        for (int i = 0; i < result.Length; i++)
+        {
+            result[i] = Math.Abs(left[i] - right[i]);
+        }
+
+        return result;
+    }
+
+    public ListNode Partition(ListNode head, int x)
+    {
+        var left = new ListNode();
+        var right = new ListNode();
+
+        var headPointer = head;
+        var leftPointer = left;
+        var rightPointer = right;
+
+        while (headPointer != null)
+        {
+            if (headPointer.val < x)
+            {
+                leftPointer.next = headPointer;
+                leftPointer = leftPointer.next;
+            }
+            else
+            {
+                rightPointer.next = headPointer;
+                rightPointer = rightPointer.next;
+            }
+
+            headPointer = headPointer.next;
+        }
+
+        rightPointer.next = null;
+        leftPointer.next = right.next;
+
+        return left.next;
+    }
+
+    public IList<IList<int>> FindDifference(int[] nums1, int[] nums2)
+    {
+        var set1 = new HashSet<int>(nums1);
+        var set2 = new HashSet<int>(nums2);
+
+        var list1 = new List<int>();
+        var list2 = new List<int>();
+
+        foreach (var n in set1)
+        {
+            if (!set2.Contains(n)) list1.Add(n);
+        }
+
+        foreach (var n in set2)
+        {
+            if (!set1.Contains(n)) list2.Add(n);
+        }
+
+        return [list1, list2];
+    }
+
+    public ListNode DeleteDuplicates1(ListNode head)
+    {
+        ListNode headPointer = head;
+        ListNode result = new ListNode();
+        ListNode resultPointer = result;
+
+        while (headPointer != null)
+        {
+            int value = headPointer.val;
+
+            if (headPointer.next?.val == value)
+            {
+                while (headPointer?.val == value && headPointer != null)
+                {
+                    headPointer = headPointer.next;
+                }
+            }
+            else
+            {
+                resultPointer.next = headPointer;
+                resultPointer = resultPointer.next;
+                headPointer = headPointer.next;
+            }
+        }
+
+        resultPointer.next = null;
+
+        return result.next;
+    }
+
+    public ListNode DeleteMiddle(ListNode head)
+    {
+        ListNode headPointer = head;
+
+        ListNode slow = headPointer;
+        ListNode fast = headPointer.next;
+
+        ListNode prev = null;
+
+        while (fast != null)
+        {
+            prev = slow;
+
+            slow = slow.next;
+            fast = fast.next?.next;
+        }
+
+        if (prev == null) return null;
+
+        prev.next = slow.next;
+
+        return head;
+    }
+
+    public bool CanPlaceFlowers(int[] flowerbed, int n)
+    {
+        var count = n;
+
+        for (int i = 0; i < flowerbed.Length; i++)
+        {
+            if (flowerbed[i] == 1) continue;
+            if (i > 0 && flowerbed[i - 1] == 1) continue;
+            if (i < flowerbed.Length - 1 && flowerbed[i + 1] == 1) continue;
+            flowerbed[i] = 1;
+            count--;
+        }
+
+        return count <= 0;
+    }
+
+    public double FindMaxAverage(int[] nums, int k)
+    {
+        var left = 0;
+        var right = k - 1;
+
+        var currentSum = 0;
+        for (int i = left; i <= right; i++)
+        {
+            currentSum += nums[i];
+        }
+
+        double result = currentSum * 1.0 / k;
+        while (right < nums.Length - 1)
+        {
+            currentSum -= nums[left];
+            left++;
+            right++;
+            currentSum += nums[right];
+
+            var temp = currentSum * 1.0 / k;
+
+            if (temp > result) result = temp;
+        }
+
+        return result;
+    }
+
+    public int CountNegatives(int[][] grid)
+    {
+        var result = 0;
+
+        var rows = grid.Length;
+        var columns = grid[0].Length - 1;
+
+        for (int row = 0; row < rows; row++)
+        {
+            var left = 0;
+            var right = columns;
+
+            if (grid[row][right] >= 0) continue;
+            if (grid[row][left] < 0)
+            {
+                result += columns + 1;
+                continue;
+            }
+
+            while (grid[row][left] >= 0)
+            {
+                var mid = left + (right - left) / 2;
+
+                if (grid[row][mid] < 0) right = mid;
+                else left = mid + 1;
+            }
+
+            result += columns - left + 1;
+        }
+
+        return result;
+    }
+
+    public int MinimumCost(int[] cost)
+    {
+        var result = 0;
+        var count = 3;
+
+        Array.Sort(cost);
+
+        for (int i = cost.Length - 1; i >= 0; i--)
+        {
+            if (count == 1)
+            {
+                count = 3;
+            }
+            else
+            {
+                result += cost[i];
+                count--;
+            }
+        }
+
+        return result;
+    }
+
     public int[] NumberOfLines(int[] widths, string s)
     {
         var lineCount = 1;
@@ -573,7 +892,7 @@ class LeetCode
         return result;
     }
 
-    public string Convert(string s, int numRows)
+    public string Convert1(string s, int numRows)
     {
         if (numRows == 1) return s;
 
