@@ -8,7 +8,8 @@ var another = new AnotherClass();
 
 //var n = neetCode.foreignDictionary(['hrn', 'hrf', 'er', 'enn', 'rfnn']);
 
-var l = leetCode.ReverseBetween(new(3, new(5)), 1, 2);
+
+var l = leetCode.ReverseDegree("abc");
 
 var zz = 0;
 

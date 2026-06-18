@@ -6,6 +6,192 @@ using System.Text;
 
 class LeetCode
 {
+    public int ReverseDegree(string s)
+    {
+        var result = 0;
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            result += (i + 1) * ('z' - s[i] + 1);
+        }
+
+        return result;
+    }
+
+    public string ProcessStr(string s)
+    {
+        var sb = new StringBuilder();
+
+        foreach (var letter in s)
+        {
+            if (letter == '*')
+            {
+                if (sb.Length == 0) continue;
+                sb.Remove(sb.Length - 1, 1);
+            }
+            else if (letter == '#')
+            {
+                if (sb.Length == 0) continue;
+                sb.Append(sb);
+            }
+            else if (letter == '%')
+            {
+                if (sb.Length == 0) continue;
+                for (int i = 0; i < sb.Length * 0.5; i++)
+                {
+                    (sb[sb.Length - i - 1], sb[i]) = (sb[i], sb[sb.Length - i - 1]);
+                }
+            }
+            else sb.Append(letter);
+        }
+
+        return sb.ToString();
+    }
+
+    public string ReversePrefix(string s, int k)
+    {
+        var charArray = s.ToCharArray();
+
+        for (int i = 0; i < k / 2; i++)
+        {
+            (charArray[i], charArray[k - i - 1]) = (charArray[k - i - 1], charArray[i]);
+        }
+
+        return new string(charArray);
+    }
+
+    public int PairSum(ListNode head)
+    {
+        var stack = new Stack<int>();
+        var headPointer = head;
+
+        while (headPointer != null)
+        {
+            stack.Push(headPointer.val);
+            headPointer = headPointer.next;
+        }
+
+        headPointer = head;
+
+        var length = stack.Count >> 1;
+        var result = 0;
+
+        for (int i = 0; i < length; i++)
+        {
+            var sum = headPointer.val + stack.Pop();
+            if (sum > result) result = sum;
+            headPointer = headPointer.next;
+        }
+
+        return result;
+    }
+
+    public string MapWordWeights(string[] words, int[] weights)
+    {
+        Span<char> span = stackalloc char[words.Length];
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            var value = 0;
+
+            foreach (var letter in words[i])
+            {
+                value += weights[letter - 'a'];
+            }
+
+            span[i] = (char)('z' - (value % 26));
+        }
+
+        return span.ToString();
+    }
+
+    public string[] FindRestaurant(string[] list1, string[] list2)
+    {
+        var dict = new Dictionary<string, int>();
+        var bestRating = int.MaxValue;
+
+        for (int i = 0; i < list1.Length; i++)
+        {
+            dict.Add(list1[i], i + 1);
+        }
+
+        for (int i = 0; i < list2.Length; i++)
+        {
+            if (dict.ContainsKey(list2[i]))
+            {
+                var rating = i + dict[list2[i]] + 1000;
+                dict[list2[i]] = rating;
+                bestRating = Math.Min(bestRating, rating);
+            }
+        }
+
+        var result = new List<string>();
+
+        foreach (var pair in dict)
+        {
+            if (pair.Value == bestRating) result.Add(pair.Key);
+        }
+
+        return result.ToArray();
+    }
+
+
+    public bool CanConstruct(string ransomNote, string magazine)
+    {
+        Span<int> span = stackalloc int[26];
+
+        foreach (var c in magazine) span[c - 'a']++;
+
+        foreach (var c in ransomNote)
+        {
+            if (span[c - 'a'] == 0) return false;
+            else span[c - 'a']--;
+        }
+
+        return true;
+    }
+
+    public string Tree2str(TreeNode root)
+    {
+        if (root == null) return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Append(root.val);
+
+        if (root.left != null) Tree2strDFS(root.left, sb);
+        else if (root.left == null && root.right != null) sb.Append("()");
+
+        if (root.right != null) Tree2strDFS(root.right, sb);
+
+        return sb.ToString();
+    }
+
+    private void Tree2strDFS(TreeNode node, StringBuilder sb)
+    {
+        sb.Append('(');
+        sb.Append(node.val);
+
+        if (node.left != null) Tree2strDFS(node.left, sb);
+        else if (node.left == null && node.right != null) sb.Append("()");
+
+        if (node.right != null) Tree2strDFS(node.right, sb);
+
+        sb.Append(')');
+    }
+
+    public int FindDuplicate(int[] nums)
+    {
+        var numbers = new int[100001];
+
+        foreach (int n in nums)
+        {
+            if (numbers[n] > 0) return n;
+            else numbers[n]++;
+        }
+
+        return -1;
+    }
+
     public ListNode ReverseBetween(ListNode head, int left, int right)
     {
         if (left == right) return head;
