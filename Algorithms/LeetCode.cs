@@ -6,6 +6,156 @@ using System.Text;
 
 class LeetCode
 {
+    public int RearrangeCharacters(string s, string target)
+    {
+        var result = int.MaxValue;
+
+        Span<int> textLetters = stackalloc int[26];
+        Span<int> targetLetters = stackalloc int[26];
+
+        foreach (var letter in s)
+        {
+            textLetters[letter - 'a']++;
+        }
+
+        foreach (var letter in target)
+        {
+            if (textLetters[letter - 'a'] == 0) return 0;
+            targetLetters[letter - 'a']++;
+        }
+
+        for (int i = 0; i < targetLetters.Length; i++)
+        {
+            if (targetLetters[i] == 0) continue;
+            var count = textLetters[i] / targetLetters[i];
+            if (count < result) result = count;
+        }
+
+        return result == int.MaxValue ? 0 : result;
+    }
+
+    private const string BALLOON = "balloon";
+
+    public int MaxNumberOfBalloons(string text)
+    {
+        var result = int.MaxValue;
+
+        var ballonLetters = new int[26];
+        var textLetters = new int[26];
+
+        foreach (var letter in text)
+        {
+            textLetters[letter - 'a']++;
+        }
+
+        foreach (var letter in BALLOON)
+        {
+            if (textLetters[letter - 'a'] == 0) return 0;
+            ballonLetters[letter - 'a']++;
+        }
+
+        for (int i = 0; i < ballonLetters.Length; i++)
+        {
+            if (ballonLetters[i] == 0) continue;
+            var count = textLetters[i] / ballonLetters[i];
+            if (count < result) result = count;
+        }
+
+        return result == int.MaxValue ? 0 : result;
+    }
+
+    public int MaxIceCream(int[] costs, int coins)
+    {
+        Array.Sort(costs);
+
+        var result = 0;
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            if (coins - costs[i] >= 0)
+            {
+                result++;
+                coins -= costs[i];
+            }
+            else if (coins == 0) 
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    public ListNode AddTwoNumbers(ListNode l1, ListNode l2)
+    {
+        ListNode reverseL1 = null;
+        ListNode currentL1 = l1;
+
+        while (currentL1 != null)
+        {
+            var next = currentL1.next;
+            currentL1.next = reverseL1;
+            reverseL1 = currentL1;
+            currentL1 = next;
+        }
+
+        ListNode reverseL2 = null;
+        ListNode currentL2 = l2;
+
+        while (currentL2 != null)
+        {
+            var next = currentL2.next;
+            currentL2.next = reverseL2;
+            reverseL2 = currentL2;
+            currentL2 = next;
+        }
+
+        var result = new ListNode();
+        var resultPointer = result;
+        var hasExtra = false;
+
+        while (reverseL1 != null || reverseL2 != null)
+        {
+            var value = (reverseL1?.val ?? 0) + (reverseL2?.val ?? 0);
+            if (hasExtra) value += 1;
+            hasExtra = value / 10 > 0;
+            resultPointer.next = new(value % 10);
+            reverseL1 = reverseL1?.next;
+            reverseL2 = reverseL2?.next;
+            resultPointer = resultPointer.next;
+        }
+
+        if (hasExtra) resultPointer.next = new(1);
+
+        ListNode reverseResult = null;
+        ListNode currentResult = result.next;
+
+        while (currentResult != null)
+        {
+            var next = currentResult.next;
+            currentResult.next = reverseResult;
+            reverseResult = currentResult;
+            currentResult = next;
+        }
+
+        return reverseResult;
+    }
+
+
+    public int LargestAltitude(int[] gain)
+    {
+        int prefix = 0;
+        int maxValue = prefix;
+
+        foreach (int n in gain)
+        {
+            prefix = prefix + n;
+            if (prefix > maxValue) maxValue = prefix;
+        }
+
+        return maxValue;
+    }
+
     public int ReverseDegree(string s)
     {
         var result = 0;
@@ -4679,7 +4829,7 @@ class LeetCode
         }
     }
 
-    public ListNode AddTwoNumbers(ListNode l1, ListNode l2)
+    public ListNode AddTwoNumbers1(ListNode l1, ListNode l2)
     {
         var result = new ListNode();
 

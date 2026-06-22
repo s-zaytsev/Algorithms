@@ -9,7 +9,7 @@ var another = new AnotherClass();
 //var n = neetCode.foreignDictionary(['hrn', 'hrf', 'er', 'enn', 'rfnn']);
 
 
-var l = leetCode.ReverseDegree("abc");
+var l = leetCode.MaxNumberOfBalloons("nlaebolko");
 
 var zz = 0;
 
