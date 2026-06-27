@@ -6,6 +6,106 @@ using System.Text;
 
 class LeetCode
 {
+    public int LongestPalindrome(string s)
+    {
+        var dict = new Dictionary<char, int>();
+
+        foreach (var letter in s)
+        {
+            if (dict.ContainsKey(letter)) dict[letter]++;
+            else dict.Add(letter, 1);
+        }
+
+        var result = 0;
+
+        foreach (var pair in dict)
+        {
+            result += (pair.Value / 2) * 2;
+        }
+
+        return s.Length > result ? result + 1 : result;
+    }
+
+    public AnotherNode Flatten(AnotherNode head)
+    {
+        if (head == null) return head;
+        FlattenRecursion(head);
+        return head;
+    }
+
+    public AnotherNode FlattenRecursion(AnotherNode node)
+    {
+        AnotherNode currentNode = node;
+
+        while (currentNode != null)
+        {
+            if (currentNode.child != null)
+            {
+                var next = currentNode.next;
+                currentNode.next = currentNode.child;
+                currentNode.child.prev = currentNode;
+                var lastNode = FlattenRecursion(currentNode.child);
+                currentNode.child = null;
+                currentNode = lastNode;
+                currentNode.next = next;
+                if (next != null) next.prev = currentNode;
+                if (currentNode.next == null) return currentNode;
+                currentNode = currentNode.next;
+            }
+            else if (currentNode.next == null) return currentNode;
+            else
+            {
+                currentNode = currentNode.next;
+            }
+        }
+
+        return null;
+    }
+
+    public TreeNode BstToGst(TreeNode root)
+    {
+        if (root == null) return root;
+        var right = BstToGstDFS(root.right, 0);
+        root.val += right;
+        BstToGstDFS(root.left, root.val);
+
+        return root;
+    }
+
+    private int BstToGstDFS(TreeNode node, int parentVal)
+    {
+        if (node == null)
+            return parentVal;
+
+        var right = BstToGstDFS(node.right, parentVal);
+        node.val += right;
+        var left = BstToGstDFS(node.left, node.val);
+
+        return left;
+    }
+
+    public TreeNode ConvertBST(TreeNode root)
+    {
+        if (root == null) return root;
+        var right = ConvertBSTDFS(root.right, 0);
+        root.val += right;
+        ConvertBSTDFS(root.left, root.val);
+
+        return root;
+    }
+
+    private int ConvertBSTDFS(TreeNode node, int parentVal)
+    {
+        if (node == null)
+            return parentVal;
+
+        var right = ConvertBSTDFS(node.right, parentVal);
+        node.val += right;
+        var left = ConvertBSTDFS(node.left, node.val);
+
+        return left;
+    }
+
     public int RearrangeCharacters(string s, string target)
     {
         var result = int.MaxValue;
@@ -77,7 +177,7 @@ class LeetCode
                 result++;
                 coins -= costs[i];
             }
-            else if (coins == 0) 
+            else if (coins == 0)
             {
                 break;
             }
@@ -2194,7 +2294,7 @@ class LeetCode
         return dp[length - 1];
     }
 
-    public string LongestPalindrome(string s)
+    public string LongestPalindrome1(string s)
     {
         var length = s.Length;
         if (length == 0) return string.Empty;

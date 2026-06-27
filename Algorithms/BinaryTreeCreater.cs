@@ -4,9 +4,10 @@ public static class BinaryTreeCreater
 {
     public static TreeNode Create(int?[] array)
     {
-        if (array.Length == 0)  return null;
+        if (array.Length == 0 || array[0] == null)
+            return null;
 
-        TreeNode root = new TreeNode(array[0] ?? 0);
+        var root = new TreeNode(array[0].Value);
         CreateDFS(array, root, 0);
 
         return root;
@@ -15,23 +16,17 @@ public static class BinaryTreeCreater
     private static void CreateDFS(int?[] array, TreeNode root, int index)
     {
         var leftIndex = 2 * index + 1;
-        var rightIndex = leftIndex + 1;
+        var rightIndex = 2 * index + 2;
 
-        if (leftIndex < array.Length)
+        if (leftIndex < array.Length && array[leftIndex] != null)
         {
-            var value = array[leftIndex];
-            if (value == null) return;
-
-            root.left = new TreeNode((int)value);
+            root.left = new TreeNode(array[leftIndex]!.Value);
             CreateDFS(array, root.left, leftIndex);
         }
 
-        if (rightIndex < array.Length)
+        if (rightIndex < array.Length && array[rightIndex] != null)
         {
-            var value = array[rightIndex];
-            if (value == null) return;
-
-            root.right = new TreeNode((int)value);
+            root.right = new TreeNode(array[rightIndex]!.Value);
             CreateDFS(array, root.right, rightIndex);
         }
     }
