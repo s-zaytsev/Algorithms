@@ -6,6 +6,393 @@ using System.Text;
 
 class LeetCode
 {
+    public int FindLengthOfLCIS(int[] nums)
+    {
+        int result = 1;
+        int current = 1;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            if (nums[i] > nums[i - 1])
+            {
+                current++;
+                result = Math.Max(result, current);
+            }
+            else
+            {
+                current = 1;
+            }
+        }
+
+        return result;
+    }
+
+    public long SumAndMultiply(int n)
+    {
+        long number = 0;
+        int sum = 0;
+        int ratio = 1;
+
+        while (n > 0)
+        {
+            var rest = n % 10;
+
+            if (rest != 0)
+            {
+                number += rest * ratio;
+                sum += rest;
+                ratio *= 10;
+            }
+
+            n /= 10;
+        }
+
+        return number * sum;
+    }
+
+    public int[][] Transpose(int[][] matrix)
+    {
+        var result = new int[matrix[0].Length][];
+
+        for (int i = 0; i < result.Length; i++) 
+        {
+            result[i] = new int[matrix.Length];
+        }
+
+        for (int row = 0; row < matrix.Length; row++)
+        {
+            for (int column = 0; column < matrix[row].Length; column++)
+            {
+                result[column][row] = matrix[row][column];
+            }
+        }
+
+        return result;
+    }
+
+    public int DigitFrequencyScore(int n)
+    {
+        var result = 0;
+
+        while (n > 0)
+        {
+            var num = n % 10;
+            result += num;
+            n /= 10;
+        }
+
+        return result;
+    }
+    public int ThreeSumClosest(int[] nums, int target)
+    {
+        Array.Sort(nums);
+
+        var closestSum = nums[0] + nums[1] + nums[2];
+        var closestDifference = Math.Abs(closestSum - target);
+
+        if (closestSum == target) return closestSum;
+
+        for (int i = 0; i < nums.Length - 2; i++)
+        {
+            var left = i + 1;
+            var right = nums.Length - 1;
+
+            while (left < right)
+            {
+                var sum = nums[i] + nums[left] + nums[right];
+                if (sum == target) return sum;
+
+                var difference = Math.Abs(sum - target);
+
+                if (difference < closestDifference)
+                {
+                    closestDifference = difference;
+                    closestSum = sum;
+                }
+
+                if (sum < target) left++;
+                else right--;
+            }
+        }
+
+        return closestSum;
+    }
+
+    public string FreqAlphabets(string s)
+    {
+        var result = string.Empty;
+        var index = s.Length - 1;
+
+        while (index >= 0)
+        {
+            if (s[index] == '#')
+            {
+                var letter = (char)(int.Parse($"{s[index - 2]}{s[index - 1]}") + 'a' - 1);
+                result = letter + result;
+                index -= 3;
+            }
+            else
+            {
+                var letter = (char)(int.Parse($"{s[index]}") + 'a' - 1);
+                result = letter + result;
+                index--;
+            }
+        }
+
+        return result;
+    }
+
+    public bool FindSafeWalk(IList<IList<int>> grid, int health)
+    {
+        var rows = grid.Count;
+        var columns = grid[0].Count;
+        var startedLives = grid[0][0] == 1 ? health - 1 : health;
+
+        if (startedLives == 0) return false;
+
+        var directions = new (int rowShift, int columnShift)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
+        var queue = new PriorityQueue<(int row, int column), int>();
+
+        queue.Enqueue((0, 0), startedLives);
+
+        var visited = new bool[rows, columns];
+        visited[0, 0] = true;
+
+        while (queue.Count > 0)
+        {
+            queue.TryDequeue(out var current, out var lives);
+            lives = Math.Abs(lives);
+
+            foreach (var (rowShift, columnShift) in directions)
+            {
+                var shiftedRow = rowShift + current.row;
+                var shiftedColumn = columnShift + current.column;
+
+                if (shiftedRow < 0 ||
+                    shiftedColumn < 0 ||
+                    shiftedRow >= rows ||
+                    shiftedColumn >= columns ||
+                    visited[shiftedRow, shiftedColumn] ||
+                    (lives == 1 && grid[shiftedRow][shiftedColumn] == 1))
+                    continue;
+
+                if (shiftedRow == rows - 1 && shiftedColumn == columns - 1)
+                    return true;
+
+                var newLives = grid[shiftedRow][shiftedColumn] == 1 ? lives - 1 : lives;
+                queue.Enqueue((shiftedRow, shiftedColumn), -newLives);
+                visited[shiftedRow, shiftedColumn] = true;
+            }
+        }
+
+        return false;
+    }
+
+    public int MaximumSafenessFactor(IList<IList<int>> grid)
+    {
+        if (grid[0][0] == 1) return 0;
+
+        var length = grid.Count;
+        var queue = new Queue<(int row, int column)>();
+
+        var directions = new (int rowShift, int columnShift)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
+        var distances = new int[length, length];
+
+        for (int i = 0; i < length; i++)
+        {
+            for (int j = 0; j < length; j++)
+            {
+                if (grid[i][j] == 1) queue.Enqueue((i, j));
+                else distances[i, j] = int.MaxValue;
+            }
+        }
+
+        while (queue.Count > 0)
+        {
+            var (row, column) = queue.Dequeue();
+            int currentDistance = distances[row, column];
+
+            foreach (var (rowShift, columnShift) in directions)
+            {
+                var shiftedRow = rowShift + row;
+                var shiftedColumn = columnShift + column;
+
+                if (shiftedRow < 0 ||
+                    shiftedColumn < 0 ||
+                    shiftedRow >= length ||
+                    shiftedColumn >= length ||
+                    grid[shiftedRow][shiftedColumn] == 1)
+                    continue;
+
+                int newDistance = currentDistance + 1;
+                if (distances[shiftedRow, shiftedColumn] > newDistance)
+                {
+                    distances[shiftedRow, shiftedColumn] = newDistance;
+                    queue.Enqueue((shiftedRow, shiftedColumn));
+                }
+            }
+        }
+
+        var left = 0;
+        var right = length * length;
+        var result = 0;
+
+        while (left <= right)
+        {
+            int mid = (left + right) / 2;
+            if (MaximumSafenessFactorCanReach(distances, length, mid, directions))
+            {
+                result = mid;
+                left = mid + 1;
+            }
+            else
+            {
+                right = mid - 1;
+            }
+        }
+
+        return result;
+    }
+
+    private bool MaximumSafenessFactorCanReach(int[,] dist, int length, int limit, (int rowShift, int columnShift)[] directions)
+    {
+        if (dist[0, 0] < limit || dist[length - 1, length - 1] < limit) return false;
+
+        var visited = new bool[length, length];
+        var queue = new Queue<(int row, int column)>();
+        queue.Enqueue((0, 0));
+        visited[0, 0] = true;
+
+        while (queue.Count > 0)
+        {
+            var (row, column) = queue.Dequeue();
+            if (row == length - 1 && column == length - 1) return true;
+
+            foreach (var (rowShift, columnShift) in directions)
+            {
+                var shiftedRow = rowShift + row;
+                var shiftedColumn = columnShift + column;
+
+                if (shiftedRow < 0 ||
+                    shiftedColumn < 0 ||
+                    shiftedRow >= length ||
+                    shiftedColumn >= length)
+                    continue;
+
+                if (!visited[shiftedRow, shiftedColumn] && dist[shiftedRow, shiftedColumn] >= limit)
+                {
+                    visited[shiftedRow, shiftedColumn] = true;
+                    queue.Enqueue((shiftedRow, shiftedColumn));
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public IList<IList<int>> LargeGroupPositions(string s)
+    {
+        var result = new List<IList<int>>();
+        var left = 0;
+        var right = 0;
+
+        while (right < s.Length)
+        {
+            if (s[left] == s[right])
+            {
+                right++;
+                continue;
+            }
+            else
+            {
+                if (right - 1 - left >= 2) result.Add([left, right - 1]);
+                left = right;
+                right++;
+            }
+        }
+
+        if (right - 1 - left >= 2) result.Add([left, right - 1]);
+
+        return result;
+    }
+
+    public IList<string> RemoveComments(string[] source)
+    {
+        var result = new List<string>();
+
+        var sb = new StringBuilder();
+        var isCommentBlock = false;
+
+        foreach (var line in source)
+        {
+            var index = 0;
+            while (index < line.Length)
+            {
+                var isLastChar = index == line.Length - 1;
+
+                if (isCommentBlock && line[index] == '*' && !isLastChar && line[index + 1] == '/')
+                {
+                    isCommentBlock = false;
+                    index += 2;
+                    continue;
+                }
+                else if (isCommentBlock)
+                {
+                    index++;
+                    continue;
+                }
+                else if (line[index] == '/' && !isLastChar && line[index + 1] == '/') break;
+                else if (line[index] == '/' && !isLastChar && line[index + 1] == '*')
+                {
+                    isCommentBlock = true;
+                    index += 2;
+                    continue;
+                }
+                else
+                {
+                    sb.Append(line[index]);
+                    index++;
+                }
+            }
+
+            if (!isCommentBlock)
+            {
+                if (sb.Length > 0) result.Add(sb.ToString());
+                sb.Clear();
+            }
+        }
+
+        return result;
+    }
+
+    public int NumOfStrings(string[] patterns, string word)
+    {
+        int result = 0;
+
+        foreach (var pattern in patterns)
+        {
+            if (word.Contains(pattern)) result++;
+        }
+
+        return result;
+    }
+
+    public int MaximumElementAfterDecrementingAndRearranging(int[] arr)
+    {
+        Array.Sort(arr);
+        arr[0] = 1;
+
+        for (int i = 1; i < arr.Length; i++)
+        {
+            if (arr[i] - arr[i - 1] > 1)
+            {
+                arr[i] = arr[i - 1] + 1;
+            }
+        }
+
+        return arr[^1];
+    }
+
     public int LongestPalindrome(string s)
     {
         var dict = new Dictionary<char, int>();
