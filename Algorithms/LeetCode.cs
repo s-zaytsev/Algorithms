@@ -6,6 +6,299 @@ using System.Text;
 
 class LeetCode
 {
+    public int[][] MatrixReshape(int[][] mat, int r, int c)
+    {
+        var rows = mat.Length;
+        var columns = mat[0].Length;
+
+        if (rows == r && columns == c) return mat;
+        if (rows * columns != r * c) return mat;
+
+        var result = new int[r][];
+
+        for (int i = 0; i < r; i++)
+        {
+            result[i] = new int[c];
+        }
+
+        var currentRow = 0;
+        var currentColumn = 0;
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < columns; column++)
+            {
+                result[currentRow][currentColumn++] = mat[row][column];
+                if (currentColumn > c - 1)
+                {
+                    currentRow++;
+                    currentColumn = 0;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public string IntToRoman(int num)
+    {
+        var dict = new Dictionary<int, string>
+        {
+            { 1, "I" },
+            { 4, "IV" },
+            { 5, "V" },
+            { 9, "IX" },
+            { 10, "X" },
+            { 40, "XL" },
+            { 50, "L" },
+            { 90, "XC" },
+            { 100, "C" },
+            { 400, "CD" },
+            { 500, "D" },
+            { 900, "CM" },
+            { 1000, "M" }
+        };
+
+        var result = string.Empty;
+        var ratio = 1;
+
+        while (num > 0)
+        {
+            var number = num % 10;
+
+            if (number != 0)
+            {
+                number *= ratio;
+
+                if (dict.TryGetValue(number, out var letter))
+                {
+                    result = dict[number] + result;
+                }
+                else
+                {
+                    var letters = string.Empty;
+                    while (number > 0)
+                    {
+                        (int number, string letter) last = default;
+                        foreach (var pair in dict)
+                        {
+                            if (pair.Key == number) last = (pair.Key, pair.Value);
+                            if (pair.Key > number) break;
+                            last = (pair.Key, pair.Value);
+                        }
+
+                        letters = letters + last.letter;
+                        number -= last.number;
+                    }
+
+                    result = letters + result;
+                }
+            }
+
+            ratio *= 10;
+            num /= 10;
+        }
+
+        return result;
+    }
+
+    public IList<int> SequentialDigits(int low, int high)
+    {
+        var size = 0;
+        var firstNumber = 0;
+
+        var lowThreshold = low;
+
+        while (lowThreshold > 0)
+        {
+            firstNumber = lowThreshold % 10;
+            size++;
+            lowThreshold /= 10;
+        }
+
+        var ratio = 1;
+        for (int i = 0; i < size - 1; i++)
+        {
+            ratio *= 10;
+            ratio += 1;
+        }
+
+        var currentNumber = firstNumber;
+        var result = new List<int>();
+
+        while (size < 10)
+        {
+            var isRightNumber = true;
+
+            for (int i = 0; i < size - 1; i++)
+            {
+                currentNumber *= 10;
+                currentNumber += ++firstNumber;
+                if (currentNumber % 10 == 0)
+                {
+                    isRightNumber = false;
+                    break;
+                }
+            }
+
+            if (isRightNumber)
+            {
+                var startIndex = currentNumber % 10;
+
+                for (int i = startIndex; i < 10; i++)
+                {
+                    if (currentNumber < low)
+                    {
+                        currentNumber += ratio;
+                        continue;
+                    }
+
+                    if (currentNumber > high) break;
+                    result.Add(currentNumber);
+                    currentNumber += ratio;
+                }
+            }
+
+            size++;
+
+            ratio *= 10;
+            ratio++;
+
+            firstNumber = 1;
+            currentNumber = firstNumber;
+        }
+
+        return result;
+    }
+
+    public string KthDistinct(string[] arr, int k)
+    {
+        var dict = new Dictionary<string, int>();
+
+        foreach (var str in arr)
+        {
+            if (!dict.TryGetValue(str, out int value)) dict.Add(str, 1);
+            else dict[str] = ++value;
+        }
+
+        foreach (var pair in dict)
+        {
+            if (pair.Value == 1)
+            {
+                if (--k == 0)
+                    return pair.Key;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    public int[] ArrayRankTransform(int[] arr)
+    {
+        var temp = new int[arr.Length];
+        Array.Copy(arr, temp, arr.Length);
+        Array.Sort(temp);
+
+        var dict = new Dictionary<int, int>();
+
+        var rank = 1;
+        for (int i = 0; i < temp.Length; i++)
+        {
+            if (!dict.ContainsKey(temp[i]))
+                dict.Add(temp[i], rank++);
+        }
+
+        var result = new int[arr.Length];
+
+        for (int i = 0; i < arr.Length; i++)
+        {
+            result[i] = dict[arr[i]];
+        }
+
+        return result;
+    }
+
+    public string SimplifyPath(string path)
+    {
+        var stack = new Stack<string>();
+        var sb = new StringBuilder();
+        var index = 0;
+
+        while (index < path.Length)
+        {
+            if (path[index] != '/')
+            {
+                sb.Append(path[index]);
+                index++;
+            }
+            else
+            {
+                SimplifyPathCheck(sb, stack);
+                index++;
+            }
+        }
+
+        SimplifyPathCheck(sb, stack);
+
+        if (stack.Count == 0) return "/";
+
+        while (stack.Count > 0)
+        {
+            sb.Insert(0, stack.Pop());
+            sb.Insert(0, '/');
+        }
+
+        return sb.ToString();
+    }
+
+    private void SimplifyPathCheck(StringBuilder sb, Stack<string> stack)
+    {
+        var directory = sb.ToString();
+
+        if (directory == "..")
+        {
+            stack.TryPop(out var dir);
+        }
+        else if (directory != "." && !string.IsNullOrWhiteSpace(directory))
+            stack.Push(directory);
+
+        sb.Clear();
+    }
+
+    public int DaysBetweenDates(string date1, string date2)
+    {
+        return (DateTime.Parse(date1) - DateTime.Parse(date2)).Days;
+    }
+
+    public string ThousandSeparator(int n)
+    {
+        if (n < 10) return n.ToString();
+
+        var size = (int)Math.Floor(Math.Log10(n));
+        size += size / 3 + 1;
+
+        Span<char> span = stackalloc char[size];
+        var count = 3;
+        var index = size - 1;
+
+        while (n > 0)
+        {
+            if (count == 0)
+            {
+                span[index--] = '.';
+                count = 3;
+            }
+
+            var number = n % 10;
+            span[index--] = (char)(number + '0');
+            count--;
+
+            n /= 10;
+        }
+
+        return new string(span);
+    }
+
     public int FindLengthOfLCIS(int[] nums)
     {
         int result = 1;
@@ -54,7 +347,7 @@ class LeetCode
     {
         var result = new int[matrix[0].Length][];
 
-        for (int i = 0; i < result.Length; i++) 
+        for (int i = 0; i < result.Length; i++)
         {
             result[i] = new int[matrix.Length];
         }
@@ -6641,7 +6934,7 @@ class LeetCode
         FindModeDFS(node.right, modes);
     }
 
-    public int HeightChecker(int[] heights)
+    public int HeightChecker1(int[] heights)
     {
         var result = 0;
 
@@ -8795,7 +9088,7 @@ class LeetCode
         return nums.Length == new HashSet<int>(nums).Count;
     }
 
-    public void SortColors(int[] nums)
+    public void SortColors1(int[] nums)
     {
         var left = 0;
         var current = 0;

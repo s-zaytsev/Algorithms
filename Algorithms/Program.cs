@@ -8,7 +8,7 @@ var root = BinaryTreeCreater.Create([4, 1, 6, 0, 2, 5, 7, null, null, null, 3, n
 
 //var n = neetCode.foreignDictionary(['hrn', 'hrf', 'er', 'enn', 'rfnn']);
 
-var l = leetCode.SumAndMultiply("9876543210", [[0, 9]]);
+var l = leetCode.MatrixReshape([[1, 2], [3, 4]], 4, 1);
 
 var zz = 0;
 
