@@ -6,6 +6,752 @@ using System.Text;
 
 class LeetCode
 {
+    public int MaxProduct(int n)
+    {
+        var prevMax = 0;
+        var max = 0;
+
+        while (n > 0)
+        {
+            var number = n % 10;
+            if (number > max)
+            {
+                prevMax = max;
+                max = number;
+            }
+            else if (number > prevMax)
+            {
+                prevMax = number;
+            }
+
+            n /= 10;
+        }
+
+        return max * prevMax;
+    }
+
+    public bool DivisorGame(int n)
+    {
+        return n % 2 == 0;
+    }
+
+    public bool CanJump(int[] nums)
+    {
+        var canReach = new bool[nums.Length];
+        canReach[0] = true;
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            if (!canReach[i]) continue;
+
+            for (int j = 1; j <= nums[i]; j++)
+            {
+                var index = j + i;
+                if (index >= nums.Length) break;
+                canReach[index] = true;
+            }
+        }
+
+        return canReach[^1];
+    }
+
+    // Not solved
+    public int Trap2(int[] height)
+    {
+        var result = 0;
+        var stack = new Stack<int>();
+
+        var left = 0;
+        var right = 1;
+
+        while (right < height.Length)
+        {
+            if (height[left] > height[right])
+            {
+                stack.Push(height[right]);
+            }
+            else
+            {
+                if (stack.Count == 0)
+                {
+                    height[left] = height[right];
+                }
+                else
+                {
+                    while (stack.Count > 0)
+                    {
+                        result += height[left] - stack.Pop();
+                    }
+                }
+
+                left = right;
+            }
+
+            right++;
+        }
+
+        if (stack.Count == 0) return result;
+
+        var lastHeight = stack.Pop();
+        right--;
+
+        while (stack.Count > 0 && stack.Peek() < lastHeight)
+        {
+            stack.Pop();
+            right--;
+        }
+
+        left = right;
+
+        while (stack.Count > 0)
+        {
+            left--;
+            if (height[left] >= height[right])
+            {
+                while (stack.Count > 0 && right > left)
+                {
+                    result += height[left] - stack.Pop();
+                    right--;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public bool SearchMatrix(int[][] matrix, int target)
+    {
+        var row = 0;
+        var column = matrix[0].Length - 1;
+
+        while (row < matrix.Length && column >= 0)
+        {
+            if (matrix[row][column] == target) return true;
+            else if (matrix[row][column] < target) row++;
+            else column--;
+        }
+
+        return false;
+    }
+
+    public int LongestValidParentheses(string s)
+    {
+        var stack = new Stack<int>();
+        var max = 0;
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '(')
+            {
+                stack.Push(i);
+            }
+            else
+            {
+                if (stack.Count == 0 || s[stack.Peek()] == ')')
+                {
+                    stack.Push(i);
+                    continue;
+                }
+
+                stack.Pop();
+
+                var lastIndex = stack.Count == 0 ? -1 : stack.Peek();
+                max = Math.Max(max, i - lastIndex);
+            }
+        }
+
+        return max;
+    }
+
+    public IList<string> CommonChars(string[] words)
+    {
+        var letters = new int[26];
+
+        for (int i = 0; i < words[0].Length; i++)
+        {
+            letters[words[0][i] - 'a']++;
+        }
+
+        for (int i = 1; i < words.Length; i++)
+        {
+            var temp = new int[26];
+
+            foreach (var letter in words[i])
+            {
+                temp[letter - 'a']++;
+            }
+
+            for (int j = 0; j < temp.Length; j++)
+            {
+                if (temp[j] < letters[j])
+                {
+                    letters[j] = temp[j];
+                }
+            }
+        }
+
+        var result = new List<string>();
+
+        for (int i = 0; i < letters.Length; i++)
+        {
+            while (letters[i] > 0)
+            {
+                result.Add(((char)('a' + i)).ToString());
+                letters[i]--;
+            }
+        }
+
+        return result;
+    }
+
+    public bool ValidMountainArray(int[] arr)
+    {
+        var peakValue = -1;
+        var peakIndex = -1;
+
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if (arr[i] > peakValue)
+            {
+                peakValue = arr[i];
+                peakIndex = i;
+            }
+        }
+
+        var isLeftSideValid = false;
+        var isRightSideValid = false;
+
+        var prevLeft = peakValue;
+        var prevRight = peakValue;
+
+        for (int i = peakIndex - 1; i >= 0; i--)
+        {
+            if (arr[i] >= prevLeft) return false;
+            prevLeft = arr[i];
+            if (i == 0) isLeftSideValid = true;
+        }
+
+        for (int i = peakIndex + 1; i < arr.Length; i++)
+        {
+            if (arr[i] >= prevRight) return false;
+            prevRight = arr[i];
+            if (i == arr.Length - 1) isRightSideValid = true;
+        }
+
+        return isLeftSideValid && isRightSideValid;
+    }
+
+    public int MaxSubArray(int[] nums)
+    {
+        if (nums.Length == 1) return nums[0];
+
+        var dp = new int[nums.Length];
+
+        dp[0] = nums[0];
+        dp[1] = Math.Max(nums[0] + nums[1], nums[1]);
+
+        var maxSum = Math.Max(dp[0], dp[1]);
+
+        for (int i = 2; i < nums.Length; i++)
+        {
+            dp[i] = Math.Max(nums[i], nums[i] + dp[i - 1]);
+            if (dp[i] > maxSum) maxSum = dp[i];
+        }
+
+        return maxSum;
+    }
+
+    public int[] RelativeSortArray(int[] arr1, int[] arr2)
+    {
+        var counts = new int[1001];
+
+        foreach (var n in arr1)
+        {
+            counts[n]++;
+        }
+
+        var result = new int[arr1.Length];
+        var index = 0;
+
+        foreach (var n in arr2)
+        {
+            var size = counts[n];
+            for (int i = 0; i < size; i++)
+            {
+                result[index] = n;
+                counts[n]--;
+                index++;
+            }
+        }
+
+        for (int i = 0; i < counts.Length; i++)
+        {
+            if (counts[i] == 0) continue;
+
+            for (int j = 0; j < counts[i]; j++)
+            {
+                result[index++] = i;
+            }
+        }
+
+        return result;
+    }
+
+    public IList<string> TopKFrequent(string[] words, int k)
+    {
+        var counts = new Dictionary<string, int>();
+
+        foreach (var word in words)
+        {
+            if (counts.ContainsKey(word)) counts[word]++;
+            else counts[word] = 1;
+        }
+
+        var buckets = new List<string>[words.Length];
+
+        foreach (var pair in counts)
+        {
+            if (buckets[pair.Value] == null) buckets[pair.Value] = [pair.Key];
+            else buckets[pair.Value].Add(pair.Key);
+        }
+
+        var result = new List<string>();
+        for (int i = buckets.Length - 1; i >= 0 && k > 0; i--)
+        {
+            if (buckets[i] != null)
+            {
+                buckets[i].Sort();
+                for (int j = 0; j < buckets[i].Count && k > 0; j++)
+                {
+                    result.Add(buckets[i][j]);
+                    k--;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public int CountFound(int[] nums, int[] queries)
+    {
+        var result = 0;
+
+        for (int i = 0; i < queries.Length; i++)
+        {
+            var target = queries[i];
+
+            var left = 0;
+            var right = nums.Length - 1;
+
+            while (left <= right)
+            {
+                var mid = left + (right - left) / 2;
+                if (nums[mid] == target)
+                {
+                    result++;
+                    break;
+                }
+
+                if (nums[mid] > target) right = mid - 1;
+                else left = mid + 1;
+            }
+        }
+
+        return result;
+    }
+
+    public IList<IList<int>> ShiftGrid(int[][] grid, int k)
+    {
+        var rows = grid.Length;
+        var columns = grid[0].Length;
+
+        var count = k % (rows * columns);
+
+        while (count > 0)
+        {
+            var oldCache = grid[rows - 1][columns - 1];
+
+            for (int row = 0; row < rows; row++)
+            {
+                var newCache = grid[row][columns - 1];
+
+                for (int column = columns - 1; column > 0; column--)
+                {
+                    grid[row][column] = grid[row][column - 1];
+                }
+
+                grid[row][0] = oldCache;
+                oldCache = newCache;
+            }
+
+            count--;
+        }
+
+        return grid;
+    }
+
+    public int[] TopKFrequent1(int[] nums, int k)
+    {
+        var counts = new int[20002];
+
+        foreach (var n in nums)
+        {
+            counts[n + 10001]++;
+        }
+
+        var buckets = new List<int>[counts.Length];
+
+        for (int i = 0; i < counts.Length; i++)
+        {
+            if (counts[i] > 0)
+            {
+                var bucketIndex = counts[i];
+                if (buckets[bucketIndex] == null)
+                {
+                    buckets[bucketIndex] = [];
+                }
+
+                buckets[bucketIndex].Add(i - 10001);
+            }
+        }
+
+        var result = new List<int>();
+
+        for (int i = buckets.Length - 1; i >= 0 && result.Count < k; i--)
+        {
+            if (buckets[i] != null)
+                result.AddRange(buckets[i]);
+        }
+
+        return result.ToArray();
+    }
+
+    public int MaximumGap(int[] nums)
+    {
+        if (nums.Length < 2) return 0;
+
+        var max = nums[0];
+
+        foreach (var n in nums)
+        {
+            if (n > max) max = n;
+        }
+
+        for (int exp = 1; max / exp > 0; exp *= 10)
+        {
+            MaximumGapCounting(nums, exp);
+        }
+
+        var maxGap = int.MinValue;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            var gap = nums[i] - nums[i - 1];
+            if (gap > maxGap) maxGap = gap;
+        }
+
+        return maxGap;
+    }
+
+    private void MaximumGapCounting(int[] nums, int exp)
+    {
+        var count = new int[10];
+        var output = new int[nums.Length];
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            var digit = (nums[i] / exp) % 10;
+            count[digit]++;
+        }
+
+        for (int i = 1; i < 10; i++)
+        {
+            count[i] += count[i - 1];
+        }
+
+        for (int i = nums.Length - 1; i >= 0; i--)
+        {
+            var digit = (nums[i] / exp) % 10;
+            var positon = count[digit] - 1;
+            output[positon] = nums[i];
+            count[digit]--;
+        }
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            nums[i] = output[i];
+        }
+    }
+
+    public int[] SmallestTrimmedNumbers(string[] nums, int[][] queries)
+    {
+        var result = new int[queries.Length];
+        var length = nums.Length;
+        var strLength = nums[0].Length;
+
+        var indices = new int[length];
+        for (int i = 0; i < length; i++)
+            indices[i] = i;
+
+        for (int i = 0; i < queries.Length; i++)
+        {
+            var k = queries[i][0];
+            var trim = queries[i][1];
+
+            var sortedIndices = (int[])indices.Clone();
+
+            for (int position = strLength - 1; position >= strLength - trim; position--)
+                SmallestTrimmedNumbersCountingSort(nums, sortedIndices, position);
+
+            result[i] = sortedIndices[k - 1];
+        }
+
+        return result;
+    }
+
+    private void SmallestTrimmedNumbersCountingSort(string[] nums, int[] indices, int position)
+    {
+        var length = indices.Length;
+        var count = new int[10];
+        var output = new int[length];
+
+        for (int i = 0; i < length; i++)
+        {
+            int digit = nums[indices[i]][position] - '0';
+            count[digit]++;
+        }
+
+        for (int i = 1; i < 10; i++)
+        {
+            count[i] += count[i - 1];
+        }
+
+        for (int i = length - 1; i >= 0; i--)
+        {
+            int digit = nums[indices[i]][position] - '0';
+            int pos = count[digit] - 1;
+            output[pos] = indices[i];
+
+            count[digit]--;
+        }
+
+        for (int i = 0; i < length; i++)
+        {
+            indices[i] = output[i];
+        }
+    }
+
+
+    public IList<IList<int>> MinimumAbsDifference(int[] arr)
+    {
+        var min = arr[0];
+        var max = arr[0];
+
+        for (int i = 1; i < arr.Length; i++)
+        {
+            if (arr[i] < min) min = arr[i];
+            if (arr[i] > max) max = arr[i];
+        }
+
+        var tempArr = new bool[max - min + 1];
+
+        foreach (var n in arr)
+        {
+            tempArr[Math.Abs(n - min)] = true;
+        }
+
+        var minDifference = int.MaxValue;
+
+        var left = -1;
+
+        while (left < 0)
+        {
+            left++;
+            if (tempArr[left])
+                break;
+        }
+
+        var right = left + 1;
+
+        while (right < tempArr.Length)
+        {
+            if (tempArr[right])
+            {
+                var difference = right - left;
+                if (difference < minDifference) minDifference = difference;
+                left = right;
+            }
+
+            right++;
+        }
+
+        var result = new List<IList<int>>();
+
+        for (int i = 0; i < tempArr.Length; i++)
+        {
+            var pairIndex = i + minDifference;
+            if (pairIndex >= tempArr.Length) break;
+            if (tempArr[i] && tempArr[pairIndex])
+            {
+                result.Add([min + i, min + pairIndex]);
+            }
+        }
+
+
+        return result;
+    }
+
+    public void SortColors2(int[] nums)
+    {
+        var zeros = 0;
+        var ones = 0;
+        var twos = 0;
+
+        foreach (var n in nums)
+        {
+            if (n == 0) zeros++;
+            else if (n == 1) ones++;
+            else twos++;
+        }
+
+        var index = 0;
+
+        while (zeros != 0)
+        {
+            nums[index] = 0;
+            zeros--;
+            index++;
+        }
+
+        while (ones != 0)
+        {
+            nums[index] = 1;
+            ones--;
+            index++;
+        }
+
+        while (twos != 0)
+        {
+            nums[index] = 2;
+            twos--;
+            index++;
+        }
+    }
+
+    public int FindGCD(int[] nums)
+    {
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        foreach (var n in nums)
+        {
+            if (n < min) min = n;
+            if (n > max) max = n;
+        }
+
+        var result = min;
+
+        while (max % result != 0 || min % result != 0)
+        {
+            result--;
+        }
+
+        return result;
+    }
+
+    public int[] SortArray(int[] nums)
+    {
+        for (int i = nums.Length / 2 - 1; i >= 0; i--)
+        {
+            SortArrayMaxHeapify(nums, nums.Length, i);
+        }
+
+        for (int i = nums.Length - 1; i >= 0; i--)
+        {
+            var temp = nums[i];
+            nums[i] = nums[0];
+            nums[0] = temp;
+
+            SortArrayMaxHeapify(nums, i, 0);
+        }
+
+        return nums;
+    }
+
+    private void SortArrayMaxHeapify(int[] nums, int heapSize, int index)
+    {
+        var left = 2 * index + 1;
+        var right = 2 * index + 2;
+        var largest = index;
+
+        if (left < heapSize && nums[left] > nums[largest])
+            largest = left;
+
+        if (right < heapSize && nums[right] > nums[largest])
+            largest = right;
+
+        if (largest != index)
+        {
+            var temp = nums[index];
+            nums[index] = nums[largest];
+            nums[largest] = temp;
+            SortArrayMaxHeapify(nums, heapSize, largest);
+        }
+    }
+
+    public ListNode InsertionSortList(ListNode head)
+    {
+        var result = new ListNode();
+        var headPointer = head;
+
+        while (headPointer != null)
+        {
+            var resultPointer = result;
+
+            while (resultPointer.next != null && resultPointer.next.val <= headPointer.val)
+                resultPointer = resultPointer.next;
+
+            var next = headPointer.next;
+            headPointer.next = resultPointer.next;
+            resultPointer.next = headPointer;
+            headPointer = next;
+        }
+
+        return result.next;
+    }
+
+    public int[] SearchRange(int[] nums, int target)
+    {
+        var left = 0;
+        var right = nums.Length - 1;
+
+        while (left <= right)
+        {
+            var mid = left + (right - left) / 2;
+            if (nums[mid] == target)
+            {
+                left = mid;
+                while (left > 0 && nums[left - 1] == target)
+                {
+                    left--;
+                }
+
+                right = mid;
+                while (right < nums.Length - 1 && nums[right + 1] == target)
+                {
+                    right++;
+                }
+
+                return [left, right];
+            }
+
+            if (nums[mid] > target) right = mid - 1;
+            if (nums[mid] < target) left = mid + 1;
+        }
+
+        return [-1, -1];
+    }
+
     public int[][] MatrixReshape(int[][] mat, int r, int c)
     {
         var rows = mat.Length;
