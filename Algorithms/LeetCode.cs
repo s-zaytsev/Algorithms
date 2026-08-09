@@ -6,6 +6,772 @@ using System.Text;
 
 class LeetCode
 {
+    public ListNode OddEvenList(ListNode head)
+    {
+        if (head == null) return null;
+
+        var evenPointer = head;
+        var odd = head.next;
+        var oddPointer = odd;
+
+        while (oddPointer != null && evenPointer != null)
+        {
+            var next = oddPointer.next;
+
+            if (next != null)
+            {
+                evenPointer.next = next;
+                evenPointer = evenPointer.next;
+            }
+
+            oddPointer.next = oddPointer.next?.next;
+            oddPointer = oddPointer.next;
+        }
+
+        evenPointer.next = odd;
+
+        return head;
+    }
+
+    public ListNode DetectCycle(ListNode head)
+    {
+        var slowPointer = head;
+        var fastPointer = head;
+
+        while (slowPointer != null && fastPointer != null)
+        {
+            slowPointer = slowPointer.next;
+            fastPointer = fastPointer.next?.next;
+
+            if (fastPointer == slowPointer)
+                break;
+        }
+
+        if (fastPointer == null) return null;
+
+        slowPointer = head;
+
+        while (slowPointer != fastPointer)
+        {
+            slowPointer = slowPointer.next;
+            fastPointer = fastPointer.next;
+        }
+
+        return slowPointer;
+    }
+
+    public ListNode InsertGreatestCommonDivisors(ListNode head)
+    {
+        var pointer = head;
+
+        while (pointer.next != null)
+        {
+            var left = pointer.val;
+            var right = pointer.next.val;
+
+            while (left > 0 && right > 0)
+            {
+                if (left > right) left %= right;
+                else right %= left;
+            }
+
+            pointer.next = new ListNode(left + right, pointer.next);
+            pointer = pointer.next.next;
+        }
+
+        return head;
+    }
+
+    public ListNode MergeNodes(ListNode head)
+    {
+        if (head == null) return head;
+
+        var result = new ListNode();
+        var isOpen = false;
+
+        var headPointer = head;
+        var resultPointer = result;
+
+        var currrentSum = 0;
+
+        while (headPointer != null)
+        {
+            if (headPointer.val == 0 && !isOpen)
+            {
+                isOpen = true;
+            }
+            else if (headPointer.val == 0 && isOpen)
+            {
+                resultPointer.next = new ListNode(currrentSum);
+                resultPointer = resultPointer.next;
+                currrentSum = 0;
+            }
+            else
+            {
+                currrentSum += headPointer.val;
+            }
+
+            headPointer = headPointer.next;
+        }
+
+        return result.next;
+    }
+
+    public bool IsSubPath(ListNode head, TreeNode root)
+    {
+        if (root == null || head == null) return false;
+        return IsSubPathDFS(head, root);
+    }
+
+    public bool IsSubPathDFS(ListNode head, TreeNode node)
+    {
+        if (node == null) return false;
+        if (head.val == node.val && IsCorrectWay(head, node))
+            return true;
+
+        return IsSubPathDFS(head, node.left) || IsSubPathDFS(head, node.right);
+    }
+
+    public bool IsCorrectWay(ListNode head, TreeNode node)
+    {
+        if (node == null || head.val != node.val) return false;
+        if (head.next == null) return true;
+        return IsCorrectWay(head.next, node.left) || IsCorrectWay(head.next, node.right);
+    }
+
+
+    public int CountPrimes(int n)
+    {
+        if (n < 2) return 0;
+
+        Span<bool> notPrimes = stackalloc bool[n];
+
+        notPrimes[0] = true;
+        notPrimes[1] = true;
+
+        for (int i = 2; i < n; i++)
+        {
+            if (!notPrimes[i])
+            {
+                for (int j = i * 2; j < n; j += i)
+                {
+                    notPrimes[j] = true;
+                }
+            }
+        }
+
+        var result = notPrimes.Count(false);
+
+        return result;
+    }
+
+    public ListNode MergeInBetween(ListNode list1, int a, int b, ListNode list2)
+    {
+        var index = 0;
+
+        var list1Pointer = list1;
+
+        ListNode left = null;
+
+        while (index <= b)
+        {
+            if (index == a - 1)
+            {
+                left = list1Pointer;
+            }
+
+            list1Pointer = list1Pointer.next;
+            index++;
+        }
+
+        var list2Pointer = list2;
+
+        while (list2Pointer.next != null)
+        {
+            list2Pointer = list2Pointer.next;
+        }
+
+        list2Pointer.next = list1Pointer;
+        left.next = list2;
+
+        return list1;
+    }
+
+    public ListNode ModifiedList(int[] nums, ListNode head)
+    {
+        var hashset = new HashSet<int>(nums);
+
+        while (hashset.Contains(head.val))
+        {
+            head = head.next;
+        }
+
+        var pointer = head;
+
+        while (pointer.next != null)
+        {
+            if (hashset.Contains(pointer.next.val))
+            {
+                pointer.next = pointer.next.next;
+            }
+            else
+            {
+                pointer = pointer.next;
+            }
+        }
+
+        return head;
+    }
+
+    public int SmallestNumber(int n, int t)
+    {
+        for (int i = n; i < n + 10; i++)
+        {
+            var number = i;
+            var product = 1;
+
+            while (number > 0)
+            {
+                product *= number % 10;
+                number /= 10;
+            }
+
+            if (product % t == 0) return i;
+        }
+
+        return -1;
+    }
+
+    public int LastStoneWeight(int[] stones)
+    {
+        var queue = new PriorityQueue<int, int>();
+
+        foreach (var stone in stones)
+        {
+            queue.Enqueue(stone, -stone);
+        }
+
+        while (queue.Count > 1)
+        {
+            var first = queue.Dequeue();
+            var second = queue.Dequeue();
+
+            var current = first - second;
+
+            if (current > 0) queue.Enqueue(current, -current);
+        }
+
+        return queue.Count == 0 ? 0 : queue.Peek();
+    }
+
+    public IList<int> FindMissingElements(int[] nums)
+    {
+        var result = new List<int>();
+        Array.Sort(nums);
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            if (nums[i] == nums[i - 1] + 1) continue;
+            result.AddRange(Enumerable.Sequence(nums[i - 1] + 1, nums[i] - 1, 1));
+        }
+
+        return result;
+    }
+
+    public string ReorderSpaces(string text)
+    {
+        var words = text.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 1)
+            return words[0] + string.Join("", Enumerable.Repeat(" ", text.Length - words[0].Length));
+
+        var spaces = 0;
+
+        foreach (var c in text)
+        {
+            if (c == ' ') spaces++;
+        }
+
+        var space = spaces / (words.Length - 1);
+        var sb = new StringBuilder(text.Length);
+
+        foreach (var word in words)
+        {
+            sb.Append(word);
+
+            if (spaces > 0) sb.Append(string.Join("", Enumerable.Repeat(" ", space <= spaces ? space : spaces)));
+            spaces -= space;
+        }
+
+        if (spaces > 0)
+        {
+            sb.Append(string.Join("", Enumerable.Repeat(" ", spaces)));
+        }
+
+        return sb.ToString();
+    }
+
+    public IList<string> FullJustify(string[] words, int maxWidth)
+    {
+        var result = new List<string>();
+        var currentStr = new List<string>();
+        var wordIndex = 0;
+        var currentLength = 0;
+
+        while (wordIndex < words.Length)
+        {
+            if (words[wordIndex].Length + currentLength + currentStr.Count - 1 >= maxWidth)
+            {
+                var line = string.Empty;
+
+                var fullSpaceLength = maxWidth - currentLength;
+
+                if (currentStr.Count == 1)
+                {
+                    line += currentStr[0];
+                    if (line.Length < maxWidth)
+                        line += string.Join("", Enumerable.Repeat(" ", fullSpaceLength));
+                }
+                else
+                {
+                    for (int i = 0; i < currentStr.Count; i++)
+                    {
+                        var space = (int)Math.Ceiling((double)fullSpaceLength / (currentStr.Count - 1 - i));
+
+                        line += currentStr[i];
+                        if (line.Length < maxWidth)
+                            line += string.Join("", Enumerable.Repeat(" ", space));
+
+                        fullSpaceLength -= space;
+                    }
+                }
+
+                result.Add(line);
+
+                currentStr.Clear();
+                currentLength = 0;
+            }
+            else
+            {
+                currentStr.Add(words[wordIndex]);
+                currentLength += words[wordIndex].Length;
+                wordIndex++;
+            }
+        }
+
+        if (currentStr.Count > 0)
+        {
+            var line = string.Join(" ", currentStr);
+            line += string.Join("", Enumerable.Repeat(" ", maxWidth - line.Length));
+            result.Add(line);
+        }
+
+        return result;
+    }
+
+    public int TimeRequiredToBuy(int[] tickets, int k)
+    {
+        var queue = new Queue<(int index, int ticketCount)>();
+
+        for (int i = 0; i < tickets.Length; i++)
+        {
+            queue.Enqueue((i, tickets[i]));
+        }
+
+        var result = 0;
+
+        while (queue.Count > 0)
+        {
+            var (index, ticketCount) = queue.Dequeue();
+            result++;
+            ticketCount--;
+
+            if (index == k && ticketCount == 0) return result;
+            if (ticketCount > 0) queue.Enqueue((index, ticketCount));
+        }
+
+        return result;
+    }
+
+    public int NumIdenticalPairs(int[] nums)
+    {
+        var array = new int[101];
+
+        foreach (var n in nums)
+        {
+            array[n]++;
+        }
+
+        var result = 0;
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            result += array[i] * (array[i] - 1) / 2;
+        }
+
+        return result;
+    }
+
+    public int CountStudents(int[] students, int[] sandwiches)
+    {
+        var queue = new Queue<int>();
+        var stack = new Stack<int>();
+
+        for (int i = 0; i < students.Length; i++)
+        {
+            queue.Enqueue(students[i]);
+            stack.Push(sandwiches[sandwiches.Length - i - 1]);
+        }
+
+        while (stack.Count > 0 && queue.Count > 0)
+        {
+            var size = queue.Count;
+            var isLock = true;
+
+            for (int i = 0; i < size; i++)
+            {
+                var student = queue.Dequeue();
+                if (student != stack.Peek())
+                    queue.Enqueue(student);
+                else
+                {
+                    stack.Pop();
+                    isLock = false;
+                }
+            }
+
+            if (isLock) break;
+        }
+
+        return queue.Count;
+    }
+
+    public int CountDistinctLetters1(string text)
+    {
+        var lowLetters = new int[26];
+
+        foreach (var symbol in text)
+        {
+            if (char.IsLetter(symbol))
+                lowLetters[char.ToLower(symbol) - 'a']++;
+        }
+
+        var result = 0;
+
+        for (int i = 0; i < 26; i++)
+        {
+            if (lowLetters[i] > 0) result++;
+        }
+
+        return result;
+    }
+
+    public int LargestRectangleArea(int[] heights)
+    {
+        var max = 0;
+        var stack = new Stack<int>();
+
+        for (int i = 0; i <= heights.Length; i++)
+        {
+            var height = i < heights.Length ? heights[i] : 0;
+
+            while (stack.Count > 0 && heights[stack.Peek()] > height)
+            {
+                var current = heights[stack.Pop()];
+                var previousIndex = stack.Count == 0 ? -1 : stack.Peek();
+
+                max = Math.Max(max, current * (i - 1 - previousIndex));
+            }
+
+            stack.Push(i);
+        }
+
+        return max;
+    }
+
+    public int MinimumPushes2(string word)
+    {
+        var letters = new int[26];
+
+        foreach (var letter in word)
+            letters[letter - 'a']++;
+
+        Array.Sort(letters);
+
+        var result = 0;
+        var usedButtons = 0;
+
+        for (int i = letters.Length - 1; i >= 0; i--)
+        {
+            if (letters[i] == 0) continue;
+            result += letters[i] * (usedButtons++ / 8 + 1);
+        }
+
+        return result;
+    }
+
+    public int MinimumPushes(string word)
+    {
+        int result = 0;
+
+        int length = word.Length;
+
+        for (int i = 0; i < length; i++)
+        {
+            result += (int)(i * 0.125) + 1;
+        }
+
+        return result;
+    }
+
+    public int[] DailyTemperatures(int[] temperatures)
+    {
+        var stack = new Stack<int>();
+        var result = new int[temperatures.Length];
+
+        for (int i = 0; i < temperatures.Length; i++)
+        {
+            while (stack.Count > 0 && temperatures[stack.Peek()] < temperatures[i])
+            {
+                var index = stack.Pop();
+                result[index] = i - index;
+            }
+
+            stack.Push(i);
+        }
+
+        return result;
+    }
+
+    public int FindSpecialInteger(int[] arr)
+    {
+        var array = new int[100001];
+
+        foreach (var n in arr)
+        {
+            array[n]++;
+        }
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (array[i] == 0) continue;
+            if ((double)array[i] / arr.Length * 100 > 25) return i;
+        }
+
+        return -1;
+    }
+
+    public int NumberOfSteps(int num)
+    {
+        var result = 0;
+
+        while (num > 0)
+        {
+            if (num % 2 == 0) num /= 2;
+            else num--;
+
+            result++;
+        }
+
+        return result;
+    }
+
+    public int MaximumWealth(int[][] accounts)
+    {
+        var result = 0;
+
+        foreach (var account in accounts)
+            result = Math.Max(result, account.Sum());
+
+        return result;
+    }
+
+    public string SmallestPalindrome(string s)
+    {
+        if (s.Length == 1) return s;
+
+        var letters = new int[26];
+
+        foreach (var letter in s)
+        {
+            letters[letter - 'a']++;
+        }
+
+        Span<char> result = stackalloc char[s.Length];
+
+        var left = 0;
+        var right = result.Length - 1;
+
+        for (int i = 0; i < 26; i++)
+        {
+            if (letters[i] == 0) continue;
+
+            var letter = (char)(i + 'a');
+
+            while (letters[i] != 0)
+            {
+                if (letters[i] == 1)
+                {
+                    result[result.Length / 2] = letter;
+                    letters[i]--;
+                }
+                else
+                {
+                    result[left] = letter;
+                    result[right] = letter;
+
+                    left++;
+                    right--;
+
+                    letters[i] -= 2;
+                }
+            }
+
+        }
+
+        return result.ToString();
+    }
+
+    public int[] FinalPrices(int[] prices)
+    {
+        for (int i = 0; i < prices.Length; i++)
+        {
+            var price = prices[i];
+            for (int j = i + 1; j < prices.Length; j++)
+            {
+                if (prices[j] <= prices[i])
+                {
+                    price -= prices[j];
+                    break;
+                }
+            }
+
+            prices[i] = price;
+        }
+
+        return prices;
+    }
+
+    public int[] ExclusiveTime(int n, IList<string> logs)
+    {
+        var result = new int[n];
+        var stack = new Stack<int>();
+
+        var start = 0;
+
+        foreach (var log in logs)
+        {
+            var temp = log.Split(':');
+            var pod = int.Parse(temp[0]);
+            var time = int.Parse(temp[2]);
+
+            if (temp[1] == "start")
+            {
+                if (stack.Count > 0)
+                {
+                    result[stack.Peek()] += time - start;
+                }
+
+                stack.Push(pod);
+                start = time;
+            }
+            else
+            {
+                var lastPod = stack.Pop();
+                result[lastPod] += time - start + 1;
+                start = time + 1;
+            }
+        }
+
+        return result;
+    }
+
+    public int MaxProduct(int[] nums)
+    {
+        var max = 0;
+        var prevMax = 0;
+
+        foreach (var num in nums)
+        {
+            if (num > max)
+            {
+                prevMax = max;
+                max = num;
+            }
+            else if (num > prevMax) prevMax = num;
+        }
+
+        return (max - 1) * (prevMax - 1);
+    }
+
+    public int MaximumProduct(int[] nums)
+    {
+        var result = int.MinValue;
+        Array.Sort(nums);
+
+        for (int i = 0; i < nums.Length - 2; i++)
+        {
+            var left = i + 1;
+            var right = nums.Length - 1;
+
+            while (left < right)
+            {
+                var product = nums[i] * nums[left] * nums[right];
+
+                if (product > result) result = product;
+
+                if (product < result) left++;
+                else right--;
+            }
+        }
+
+        return result;
+    }
+
+    public IList<IList<int>> FourSum(int[] nums, int target)
+    {
+        var result = new List<IList<int>>();
+        Array.Sort(nums);
+
+        for (int i = 0; i < nums.Length - 3; i++)
+        {
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            for (int j = i + 1; j < nums.Length - 2; j++)
+            {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+                var innerLeft = j + 1;
+                var innerRight = nums.Length - 1;
+
+                while (innerLeft < innerRight)
+                {
+                    if (innerLeft > j + 1 && nums[innerLeft] == nums[innerLeft - 1])
+                    {
+                        innerLeft++;
+                        continue;
+                    }
+
+                    if (innerRight < nums.Length - 1 && nums[innerRight] == nums[innerRight + 1])
+                    {
+                        innerRight--;
+                        continue;
+                    }
+
+                    long sum = (long)nums[i] + nums[j] + nums[innerLeft] + nums[innerRight];
+                    if (sum == target)
+                    {
+                        result.Add([nums[i], nums[j], nums[innerLeft], nums[innerRight]]);
+                    }
+
+                    if (sum <= target) innerLeft++;
+                    else innerRight--;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public int MaxProduct(int n)
     {
         var prevMax = 0;
@@ -7263,73 +8029,6 @@ class LeetCode
         for (int i = 0; i < k; i++)
         {
             result[i] = dict.Keys.ElementAt(i);
-        }
-
-        return result;
-    }
-
-    public IList<string> FullJustify(string[] words, int maxWidth)
-    {
-        var result = new List<string>();
-        var sb = new StringBuilder();
-
-        var step = 0;
-        var spaces = -1;
-
-        while (step < words.Length)
-        {
-            sb.Append(words[step] + " ");
-            spaces++;
-
-            if (sb.Length - 1 > maxWidth)
-            {
-                spaces--;
-                sb.Remove(sb.Length - words[step].Length - 1, words[step].Length);
-
-                var str = sb.ToString().Trim();
-                var spacesCount = maxWidth - str.Length + spaces;
-
-                if (spaces > 0)
-                {
-                    spacesCount = spacesCount / spaces;
-                }
-
-                if (spacesCount == 0) spacesCount = 1;
-
-                if (spaces > 0)
-                {
-                    str = str.Replace(" ", new string(' ', spacesCount));
-                }
-                else
-                {
-                    str += new string(' ', spacesCount);
-                }
-
-                result.Add(str);
-                sb.Clear();
-                spaces = -1;
-                continue;
-            }
-
-            if (step >= words.Length - 1)
-            {
-                spaces--;
-                var str = sb.ToString().Trim();
-                var spacesCount = maxWidth - str.Length + spaces;
-
-                if (spaces > 0)
-                {
-                    spacesCount = spacesCount / spaces;
-                }
-
-                if (spacesCount == 0) spacesCount = 1;
-
-                str = str + new string(' ', spacesCount);
-
-                result.Add(str);
-            }
-
-            step++;
         }
 
         return result;
