@@ -6,6 +6,663 @@ using System.Text;
 
 class LeetCode
 {
+    public int Calculate(string s)
+    {
+        var numStack = new Stack<int>();
+        var operationStack = new Stack<char>();
+
+        var index = 0;
+        while (index < s.Length)
+        {
+            var c = s[index];
+
+            if (c == ' ')
+            {
+                index++;
+                continue;
+            }
+
+            if (char.IsDigit(c))
+            {
+                var num = c - '0';
+
+                while (++index < s.Length && char.IsDigit(s[index]))
+                    num = num * 10 + (s[index] - '0');
+
+                numStack.Push(num);
+            }
+            else
+            {
+                if (c == '+' || c == '-')
+                {
+                    index++;
+                    operationStack.Push(c);
+                }
+                else
+                {
+                    while (s[++index] == ' ') ;
+
+                    var num = s[index] - '0';
+
+                    while (++index < s.Length && char.IsDigit(s[index]))
+                        num = num * 10 + (s[index] - '0');
+
+                    if (c == '*') numStack.Push(num * numStack.Pop());
+                    else numStack.Push(numStack.Pop() / num);
+                }
+            }
+        }
+
+        var numStack2 = new Stack<int>(numStack);
+        var operationStack2 = new Stack<char>(operationStack);
+
+        while (operationStack2.Count > 0)
+        {
+            var num2 = numStack2.Pop();
+            var operation = operationStack2.Pop();
+            var num1 = numStack2.Pop();
+
+            if (operation == '+') numStack2.Push(num2 + num1);
+            else numStack2.Push(num2 - num1);
+        }
+
+        return numStack2.Peek();
+    }
+
+    public int[] AsteroidCollision(int[] asteroids)
+    {
+        var stack = new Stack<int>();
+
+        foreach (var asteroid in asteroids)
+        {
+            if (stack.Count > 0)
+            {
+                var needToAdd = true;
+                while (stack.Count > 0 && (stack.Peek() > 0 && asteroid < 0))
+                {
+                    var last = stack.Peek();
+
+                    if (Math.Abs(last) < Math.Abs(asteroid))
+                    {
+                        stack.Pop();
+                    }
+                    else if (Math.Abs(last) > Math.Abs(asteroid))
+                    {
+                        needToAdd = false;
+                        break;
+                    }
+                    else if (Math.Abs(last) == Math.Abs(asteroid))
+                    {
+                        stack.Pop();
+                        needToAdd = false;
+                        break;
+                    }
+                }
+
+                if (needToAdd) stack.Push(asteroid);
+            }
+            else
+            {
+                stack.Push(asteroid);
+            }
+        }
+
+        var result = new int[stack.Count];
+
+        for (int i = result.Length - 1; i >= 0; i--)
+        {
+            result[i] = stack.Pop();
+        }
+
+        return result;
+    }
+
+    public int[] ResultArray(int[] nums)
+    {
+        Span<int> arr1 = stackalloc int[nums.Length];
+        Span<int> arr2 = stackalloc int[nums.Length];
+
+        var pointer1 = 0;
+        var pointer2 = 0;
+
+        arr1[pointer1] = nums[0];
+        arr2[pointer2] = nums[1];
+
+        for (int i = 2; i < nums.Length; i++)
+        {
+            var n = nums[i];
+            if (arr1[pointer1] > arr2[pointer2]) arr1[++pointer1] = n;
+            else arr2[++pointer2] = n;
+        }
+
+        var numsPointer = 0;
+
+        for (int i = 0; i <= pointer1; i++)
+            nums[numsPointer++] = arr1[i];
+
+        for (int i = 0; i <= pointer2; i++)
+            nums[numsPointer++] = arr2[i];
+
+        return nums;
+    }
+
+    public int MaxNumberOfFamilies(int n, int[][] reservedSeats)
+    {
+        const int FAMILY_SEAT_COUNT = 4;
+
+        var result = 0;
+
+        var rows = new Dictionary<int, bool[]>();
+
+        foreach (var seat in reservedSeats)
+        {
+            var row = seat[0] - 1;
+            if (!rows.ContainsKey(row)) rows.Add(row, new bool[10]);
+
+            rows[row][seat[1] - 1] = true;
+        }
+
+        foreach (var pair in rows)
+        {
+            var left = 1;
+            var right = 1;
+
+            while (right < pair.Value.Length - 1)
+            {
+                if (!pair.Value[right])
+                {
+                    if (right - left + 1 == FAMILY_SEAT_COUNT)
+                    {
+                        result++;
+                        left += 4;
+                        right = left;
+                        continue;
+                    }
+                }
+                else
+                {
+                    left += 2;
+                    right = left;
+                    continue;
+                }
+
+                right++;
+            }
+        }
+
+        result += (n - rows.Count) * 2;
+
+        return result;
+    }
+
+    public bool ValidDigit(int n, int x)
+    {
+        var hasX = false;
+
+        while (n >= 10)
+        {
+            var reminder = n % 10;
+            if (reminder == x) hasX = true;
+            n /= 10;
+        }
+
+        return hasX && n != x;
+    }
+
+    public int[][] SpiralMatrix(int m, int n, ListNode head)
+    {
+        var result = new int[m][];
+
+        for (int i = 0; i < m; i++)
+        {
+            result[i] = [.. Enumerable.Repeat(-1, n)];
+        }
+
+        var top = 0;
+        var right = n - 1;
+        var bottom = m - 1;
+        var left = 0;
+
+        var headpPointer = head;
+        while (headpPointer != null)
+        {
+            for (int i = left; i <= right && headpPointer != null; i++)
+            {
+                result[top][i] = headpPointer.val;
+                headpPointer = headpPointer.next;
+            }
+
+            top++;
+
+            for (int i = top; i <= bottom && headpPointer != null; i++)
+            {
+                result[i][right] = headpPointer.val;
+                headpPointer = headpPointer.next;
+            }
+
+            right--;
+
+            for (int i = right; i >= left && headpPointer != null; i--)
+            {
+                result[bottom][i] = headpPointer.val;
+                headpPointer = headpPointer.next;
+            }
+
+            bottom--;
+
+            for (int i = bottom; i >= top && headpPointer != null; i--)
+            {
+                result[i][left] = headpPointer.val;
+                headpPointer = headpPointer.next;
+            }
+
+            left++;
+        }
+
+        return result;
+    }
+
+    public int MaxLevelSum(TreeNode root)
+    {
+        var queue = new Queue<TreeNode>();
+        queue.Enqueue(root);
+
+        var maxSum = int.MinValue;
+        var level = 0;
+
+        var currentLevel = 0;
+        while (queue.Count > 0)
+        {
+            ++currentLevel;
+            var size = queue.Count;
+            var currentSum = 0;
+
+            for (int i = 0; i < size; i++)
+            {
+                var node = queue.Dequeue();
+                currentSum += node.val;
+
+                if (node.left != null) queue.Enqueue(node.left);
+                if (node.right != null) queue.Enqueue(node.right);
+            }
+
+            if (currentSum > maxSum)
+            {
+                maxSum = currentSum;
+                level = currentLevel;
+            }
+        }
+
+        return level;
+    }
+
+    public string DecodeString(string s)
+    {
+        var stack = new Stack<char>();
+
+        foreach (var c in s)
+        {
+            if (c == ']')
+            {
+                var line = string.Empty;
+
+                while (stack.TryPop(out var topChar) && topChar != '[')
+                {
+                    line = topChar + line;
+                }
+
+                var count = stack.Pop() - '0';
+                var ratio = 10;
+
+                while (stack.TryPeek(out var topChar) && char.IsDigit(topChar))
+                {
+                    var number = stack.Pop() - '0';
+                    number *= ratio;
+                    count += number;
+                    ratio *= 10;
+                }
+
+                line = string.Join("", Enumerable.Repeat(line, count));
+
+                foreach (var l in line)
+                {
+                    stack.Push(l);
+                }
+            }
+            else
+            {
+                stack.Push(c);
+            }
+        }
+
+        var result = new char[stack.Count];
+
+        for (int i = result.Length - 1; i >= 0; i--)
+        {
+            result[i] = stack.Pop();
+        }
+
+        return new string(result);
+    }
+
+    public double Average(int[] salary)
+    {
+        if (salary.Length < 3) return 0;
+
+        Array.Sort(salary);
+
+        var sum = 0;
+
+        for (int i = 1; i < salary.Length - 1; i++)
+        {
+            sum += salary[i];
+        }
+
+        return (double)sum / (salary.Length - 2);
+    }
+
+    public bool UniqueOccurrences(int[] arr)
+    {
+        var array = new int[2002];
+
+        foreach (var n in arr)
+        {
+            array[n + 1000]++;
+        }
+
+        var array2 = new bool[2002];
+
+        foreach (var n in array)
+        {
+            if (n == 0) continue;
+            if (array2[n]) return false;
+            array2[n] = true;
+        }
+
+        return true;
+    }
+
+    public int MaximumLengthSubstring(string s)
+    {
+        var letters = new int[26];
+
+        var left = 0;
+        var right = 0;
+
+        var maxLength = 0;
+
+        while (right < s.Length)
+        {
+            var index = s[right] - 'a';
+            letters[index]++;
+
+            if (letters[index] > 2)
+            {
+                while (letters[index] > 2)
+                {
+                    letters[s[left] - 'a']--;
+                    left++;
+                }
+            }
+
+            maxLength = Math.Max(maxLength, right - left + 1);
+
+            right++;
+        }
+
+        return maxLength;
+    }
+
+    public int MaxDigitRange(int[] nums)
+    {
+        var ranges = new int[10];
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            var temp = nums[i];
+            var max = 0;
+            var min = 10;
+
+            while (temp > 0)
+            {
+                var rest = temp % 10;
+                if (rest > max) max = rest;
+                if (rest < min) min = rest;
+                temp /= 10;
+            }
+
+            ranges[max - min] += nums[i];
+        }
+
+        var result = 0;
+
+        for (int i = ranges.Length - 1; i >= 0; i--)
+        {
+            if (ranges[i] != 0)
+            {
+                result = ranges[i];
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    public int[][] GenerateMatrix(int n)
+    {
+        var result = new int[n][];
+
+        for (int i = 0; i < n; i++)
+        {
+            result[i] = new int[n];
+        }
+
+        var top = 0;
+        var right = n - 1;
+        var bottom = n - 1;
+        var left = 0;
+
+        var length = n * n;
+        var index = 1;
+
+        while (index <= length)
+        {
+            for (int i = left; i <= right; i++)
+                result[top][i] = index++;
+
+            top++;
+
+            for (int i = top; i <= bottom; i++)
+                result[i][right] = index++;
+
+            right--;
+
+            for (int i = right; i >= left; i--)
+                result[bottom][i] = index++;
+
+            bottom--;
+
+            for (int i = bottom; i >= top; i--)
+                result[i][left] = index++;
+
+            left++;
+        }
+
+        return result;
+    }
+
+    public int MaxSubarrayLength(int[] nums, int k)
+    {
+        var dict = new Dictionary<int, int>();
+
+        var maxLength = 0;
+
+        var left = 0;
+        var right = 0;
+
+        while (right < nums.Length)
+        {
+            var n = nums[right];
+            if (!dict.ContainsKey(n)) dict.Add(n, 1);
+            else
+            {
+                dict[n]++;
+
+                while (dict[n] > k)
+                {
+                    dict[nums[left]]--;
+                    left++;
+                }
+            }
+
+            var currentLength = right - left + 1;
+            if (currentLength > maxLength) maxLength = currentLength;
+
+            right++;
+        }
+
+        return maxLength;
+    }
+
+    public int FirstMissingPositive(int[] nums)
+    {
+        var hashSet = new HashSet<int>(nums);
+        var missingPossitiveNumber = 1;
+
+        while (hashSet.Contains(missingPossitiveNumber))
+            missingPossitiveNumber++;
+
+        return missingPossitiveNumber;
+    }
+
+    public int MissingInteger(int[] nums)
+    {
+        var lsp = nums[0];
+
+        if (nums.Length == 1)
+            return lsp + 1;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            if (nums[i - 1] + 1 == nums[i])
+                lsp += nums[i];
+            else break;
+        }
+
+        Array.Sort(nums);
+
+        foreach (var n in nums)
+        {
+            if (n < lsp) continue;
+            if (n == lsp) lsp++;
+            if (n > lsp) break;
+        }
+
+        return lsp;
+    }
+
+    public string RemoveStars(string s)
+    {
+        var stack = new Stack<char>();
+
+        foreach (var c in s)
+        {
+            if (c == '*') stack.Pop();
+            else stack.Push(c);
+        }
+
+        var charArray = new char[stack.Count];
+
+        for (int i = charArray.Length - 1; i >= 0; i--)
+        {
+            charArray[i] = stack.Pop();
+        }
+
+        return new string(charArray);
+    }
+
+    public int MaxVowels(string s, int k)
+    {
+        var vowels = new HashSet<char>() { 'a', 'e', 'i', 'o', 'u' };
+        var currentVowelsCount = 0;
+
+        for (int i = 0; i < k; i++)
+        {
+            if (vowels.Contains(s[i])) currentVowelsCount++;
+        }
+
+        var maxVowelsCount = currentVowelsCount;
+
+        var left = 0;
+        var right = k - 1;
+
+        while (right < s.Length - 1)
+        {
+            if (vowels.Contains(s[left])) currentVowelsCount--;
+            left++;
+            right++;
+            if (vowels.Contains(s[right])) currentVowelsCount++;
+
+            if (currentVowelsCount > maxVowelsCount) maxVowelsCount = currentVowelsCount;
+        }
+
+        return maxVowelsCount;
+    }
+
+    public int Compress(char[] chars)
+    {
+        var sb = new StringBuilder();
+
+        var index = 0;
+
+        while (index < chars.Length)
+        {
+            var c = chars[index];
+            var count = 0;
+
+            while (index < chars.Length && c == chars[index])
+            {
+                count++;
+                index++;
+            }
+
+            sb.Append(c);
+            if (count > 1) sb.Append(count);
+        }
+
+        for (int i = 0; i < sb.Length; i++)
+        {
+            chars[i] = sb[i];
+        }
+
+        return sb.Length;
+    }
+
+    public int MaxOperations(int[] nums, int k)
+    {
+        Array.Sort(nums);
+
+        var left = 0;
+        var right = nums.Length - 1;
+
+        var result = 0;
+
+        while (left < right)
+        {
+            var sum = nums[left] + nums[right];
+            if (sum == k)
+            {
+                result++;
+                left++;
+                right--;
+            }
+            else if (sum < k) left++;
+            else right--;
+        }
+
+        return result;
+    }
+
     public ListNode OddEvenList(ListNode head)
     {
         if (head == null) return null;
