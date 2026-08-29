@@ -6,6 +6,335 @@ using System.Text;
 
 class LeetCode
 {
+    public int CountGoodSubstrings(string s)
+    {
+        if (s.Length < 3) return 0;
+
+        var result = 0;
+
+        var left = 0;
+        var right = 2;
+
+        while (right < s.Length)
+        {
+            if (s[left] != s[left + 1] && s[left + 1] != s[right] && s[left] != s[right])
+                result++;
+
+            left++;
+            right++;
+        }
+
+        return result;
+    }
+
+    public int LongestSubarray(int[] nums)
+    {
+        var left = 0;
+        var right = 0;
+
+        var zeroes = 0;
+        var max = 0;
+
+        while (right < nums.Length)
+        {
+            if (nums[right] == 0) zeroes++;
+
+            while (zeroes > 1 && left <= right)
+            {
+                if (nums[left] == 0) zeroes--;
+                left++;
+            }
+
+            max = Math.Max(max, right - left);
+            right++;
+        }
+
+        return max;
+    }
+
+    public int LongestOnes(int[] nums, int k)
+    {
+        var left = 0;
+        var right = 0;
+
+        var zeroes = 0;
+        var max = 0;
+
+        while (right < nums.Length)
+        {
+            if (nums[right] == 0) zeroes++;
+
+            while (zeroes > k && left <= right)
+            {
+                if (nums[left] == 0) zeroes--;
+                left++;
+            }
+
+            max = Math.Max(max, right - left + 1);
+            right++;
+        }
+
+        return max;
+    }
+
+    public int MinLength(string s)
+    {
+        var stack = new Stack<char>();
+
+        foreach (var c in s)
+        {
+            if (stack.TryPeek(out var top) && (top == 'A' && c == 'B') || (top == 'C' && c == 'D'))
+            {
+                stack.Pop();
+            }
+            else stack.Push(c);
+        }
+
+        return stack.Count;
+    }
+
+    public bool CheckGoodInteger(int n)
+    {
+        var sum = 0;
+        var squareSum = 0;
+
+        while (n > 0)
+        {
+            var reminder = n % 10;
+            sum += reminder;
+            squareSum += reminder * reminder;
+            n /= 10;
+        }
+
+        return squareSum - sum >= 50;
+    }
+
+    public string ShortestBeautifulSubstring(string s, int k)
+    {
+        var left = 0;
+
+        while (left < s.Length && s[left] == '0')
+            left++;
+
+        var right = left;
+
+        var ones = 0;
+
+        while (right < s.Length && ones < k)
+        {
+            if (s[right++] == '1') ones++;
+        }
+
+        var resultLeft = left;
+        var resultRight = right - 1;
+
+        if (right >= s.Length && ones < k) return string.Empty;
+
+        for (int i = right; i < s.Length; i++)
+        {
+            if (s[i] == '1') ones++;
+
+            while (left <= i && (ones > k || s[left] == '0'))
+            {
+                if (s[left] == '1') ones--;
+                left++;
+            }
+
+            if (ones == k)
+            {
+                if (i - left > resultRight - resultLeft) continue;
+
+                var minStr = s.Substring(resultLeft, resultRight - resultLeft + 1);
+                var currentStr = s.Substring(left, i - left + 1);
+
+                if (currentStr.CompareTo(minStr) < 0 || minStr.Length > currentStr.Length)
+                {
+                    resultRight = i;
+                    resultLeft = left;
+                }
+            }
+        }
+
+        return s.Substring(resultLeft, resultRight - resultLeft + 1);
+    }
+
+    public string RemoveDuplicateLetters(string s)
+    {
+        var frequence = new int[26];
+
+        foreach (var c in s)
+        {
+            frequence[c - 'a']++;
+        }
+
+        var stack = new Stack<char>();
+        var letters = new bool[26];
+
+        foreach (var c in s)
+        {
+            var index = c - 'a';
+            frequence[index]--;
+
+            if (letters[index]) continue;
+            while (stack.Count > 0 && stack.Peek() > c && frequence[stack.Peek() - 'a'] > 0)
+            {
+                letters[stack.Pop() - 'a'] = false;
+            }
+
+            stack.Push(c);
+            letters[index] = true;
+        }
+
+        var result = new char[stack.Count];
+
+        for (int i = result.Length - 1; i >= 0; i--)
+        {
+            result[i] = stack.Pop();
+        }
+
+        return new string(result);
+    }
+
+    public int Calculate1(string s)
+    {
+        var result = 0;
+        var index = 0;
+
+        while (index < s.Length)
+        {
+            result += Calculate1Recursion(ref index, s);
+            index++;
+        }
+
+        return result;
+    }
+
+    private int Calculate1Recursion(ref int index, string s)
+    {
+        var result = 0;
+
+        while (index < s.Length && s[index] != ')')
+        {
+            while (index < s.Length && s[index] == ' ')
+                index++;
+
+            if (index >= s.Length || s[index] == ')')
+                break;
+
+            var isNegative = s[index] == '-';
+
+            if (s[index] == '+' || s[index] == '-')
+                index++;
+
+            while (index < s.Length && s[index] == ' ')
+            {
+                index++;
+            }
+
+            if (index >= s.Length || s[index] == ')')
+                break;
+
+            if (s[index] == '(')
+            {
+                index++;
+                var sum = Calculate1Recursion(ref index, s);
+                if (isNegative) result -= sum;
+                else result += sum;
+                index++;
+                continue;
+            }
+
+            var num = s[index] - '0';
+            while (++index < s.Length && char.IsDigit(s[index]))
+            {
+                num *= 10;
+                num += s[index] - '0';
+            }
+
+            if (isNegative) result -= num;
+            else result += num;
+        }
+
+        return result;
+    }
+
+    public int MissingMultiple(int[] nums, int k)
+    {
+        var arr = new bool[101];
+        var ratio = k;
+
+        foreach (var n in nums)
+        {
+            arr[n] = true;
+        }
+
+        while (k < arr.Length)
+        {
+            if (!arr[k]) return k;
+            k += ratio;
+        }
+
+        return k;
+    }
+
+    public string RemoveDuplicates(string s)
+    {
+        var stack = new Stack<char>();
+
+        foreach (var c in s)
+        {
+            if (stack.TryPeek(out var top) && top == c)
+                stack.Pop();
+            else
+                stack.Push(c);
+        }
+
+        var result = new char[stack.Count];
+
+        for (int i = result.Length - 1; i >= 0; i--)
+        {
+            result[i] = stack.Pop();
+        }
+
+        return new string(result);
+    }
+
+    public int LongestZigZag(TreeNode root)
+    {
+        var leftLength = LongestZigZagRecursion(root.left, true, 0);
+        var rightLength = LongestZigZagRecursion(root.right, false, 0);
+
+        return Math.Max(leftLength, rightLength);
+    }
+
+    private int LongestZigZagRecursion(TreeNode node, bool isLeft, int length)
+    {
+        if (node == null) return length;
+
+        var leftLength = LongestZigZagRecursion(node.left, true, isLeft ? 0 : length + 1);
+        var rightLength = LongestZigZagRecursion(node.right, false, !isLeft ? 0 : length + 1);
+
+        return Math.Max(leftLength, rightLength);
+    }
+
+    public bool CheckDivisibility(int n)
+    {
+        var sum = 0;
+        var product = 1;
+
+        var temp = n;
+
+        while (temp > 0)
+        {
+            var reminder = temp % 10;
+            sum += reminder;
+            product *= reminder;
+            temp /= 10;
+        }
+
+        return n % (sum + product) == 0;
+    }
+
     public int Calculate(string s)
     {
         var numStack = new Stack<int>();
