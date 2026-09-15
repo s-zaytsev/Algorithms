@@ -1,11 +1,529 @@
 ﻿namespace Algorithms;
 
-using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text;
 
 class LeetCode
 {
+    public ListNode RemoveNodes(ListNode head)
+    {
+        var stack = new Stack<ListNode>();
+        var pointer = head;
+
+        while (pointer != null)
+        {
+            while (stack.Count > 0 && stack.Peek().val < pointer.val)
+            {
+                stack.Pop();
+            }
+
+            stack.Push(pointer);
+            pointer = pointer.next;
+        }
+
+        ListNode result = null;
+        
+        while (stack.Count > 0)
+        {
+            var node = stack.Pop();
+            node.next = result;
+            result = node;
+        }
+
+        return result;
+    }
+
+    public bool IsRectangleOverlap(int[] rec1, int[] rec2)
+    {
+        return rec2[0] < rec1[2] &&
+            rec2[1] < rec1[3] &&
+            rec2[2] > rec1[0] && 
+            rec2[3] > rec1[1];
+    }
+
+    public int MinAbsoluteDifference(int[] nums)
+    {
+        var stack = new Stack<int>();
+        var result = nums.Length;
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            if (nums[i] == 0) continue;
+
+            for (int j = i + 1; j < nums.Length; j++)
+            {
+                if (nums[j] == 0 || nums[j] == nums[i]) continue;
+
+                result = Math.Min(Math.Abs(i - j), result);
+            }
+        }
+
+        return result == nums.Length ? -1 : result;
+    }
+
+    public bool IsPalindromeStrict(string s)
+    {
+        var left = 0;
+        var right = s.Length - 1;
+
+        while (left < right)
+        {
+            if (!char.IsLetter(s[left]) && !char.IsDigit(s[left])) left++;
+            else if (!char.IsLetter(s[right]) && !char.IsDigit(s[right])) right--;
+            else if (char.ToLower(s[left]) != char.ToLower(s[right])) return false;
+            else
+            {
+                left++;
+                right--;
+            }
+        }
+
+        return true;
+    }
+
+    public int[] SortedSquares(int[] nums)
+    {
+        for (int i = 0; i < nums.Length; i++)
+            nums[i] = nums[i] * nums[i];
+
+        Array.Sort(nums);
+        return nums;
+    }
+
+    public int TotalNumbers(int[] digits)
+    {
+        var hashset = new HashSet<int>();
+
+        for (int i = 0; i < digits.Length; i++)
+        {
+            for (int j = i + 1; j < digits.Length; j++)
+            {
+                for (int k = j + 1; k < digits.Length; k++)
+                {
+                    var one = digits[i] * 100 + digits[j] * 10 + digits[k];
+                    var two = digits[i] * 100 + digits[k] * 10 + digits[j];
+                    var three = digits[j] * 100 + digits[i] * 10 + digits[k];
+                    var four = digits[j] * 100 + digits[k] * 10 + digits[i];
+                    var five = digits[k] * 100 + digits[i] * 10 + digits[j];
+                    var six = digits[k] * 100 + digits[j] * 10 + digits[i];
+
+                    if (one >= 100 && one % 2 == 0) hashset.Add(one);
+                    if (two >= 100 && two % 2 == 0) hashset.Add(two);
+                    if (three >= 100 && three % 2 == 0) hashset.Add(three);
+                    if (four >= 100 && four % 2 == 0) hashset.Add(four);
+                    if (five >= 100 && five % 2 == 0) hashset.Add(five);
+                    if (six >= 100 && six % 2 == 0) hashset.Add(six);
+                }
+            }
+        }
+
+        return hashset.Count;
+    }
+
+    public int AverageOfSubtree(TreeNode root)
+    {
+        if (root == null) return 0;
+        var result = 0;
+        AverageOfSubtreeDFS(root, ref result);
+        return result;
+    }
+
+    private (int sum, int count) AverageOfSubtreeDFS(TreeNode node, ref int result)
+    {
+        if (node == null) return (0, 0);
+
+        var left = AverageOfSubtreeDFS(node.left, ref result);
+        var right = AverageOfSubtreeDFS(node.right, ref result);
+        var sum = left.sum + right.sum + node.val;
+        var count = left.count + right.count + 1;
+
+        var average = sum / count;
+        if (average == node.val)
+            result++;
+
+        return (sum, count);
+    }
+
+    public long CountCommas(long n)
+    {
+        long result = 0;
+        long number = 1000;
+
+        while (number <= n)
+        {
+            result += n - number + 1;
+            number *= 1000;
+        }
+
+        return result;
+    }
+
+    public int[] FindDegrees(int[][] matrix)
+    {
+        var result = new int[matrix.Length];
+
+        for (int i = 0; i < matrix.Length; i++)
+            for (int j = 0; j < matrix[i].Length; j++)
+                if (matrix[i][j] == 1) result[i]++;
+
+        return result;
+    }
+
+    public int CountCommas(int n)
+    {
+        if (n < 1000) return 0;
+        var result = 0;
+        var ratio = 1;
+
+        while (n > 0)
+        {
+            var reminder = n % 1000 * ratio;
+            result += reminder;
+            ratio *= 1000;
+            n = (n / 1000) - 1;
+        }
+
+        return result + 1;
+    }
+
+    public int DistinctSubseqII(string s)
+    {
+        var length = s.Length;
+        var mod = 1_000_000_007;
+
+        var dp = new int[length + 1];
+        dp[0] = 1;
+
+        var last = new int[26];
+        Array.Fill(last, -1);
+
+        for (int i = 0 ; i < length; i++)
+        {
+            var lastIndex = s[i] - 'a';
+            var dpIndex = i + 1;
+            dp[dpIndex] = dp[i] * 2 % mod;
+            
+            if (last[lastIndex] >= 0)
+            {
+                dp[dpIndex] -= dp[last[lastIndex]];
+                dp[dpIndex] %= mod;
+            }
+
+            last[lastIndex] = i;
+        }
+
+        dp[^1]--;
+        if (dp[length] < 0) dp[length] += mod;
+        return dp[^1];
+    }
+
+    public int[] ConcatWithReverse(int[] nums)
+    {
+        var result = new int[nums.Length + nums.Length];
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            result[i] = nums[i];
+            result[result.Length - i - 1] = nums[i];
+        }
+
+        return result;
+    }
+
+    public string TrafficSignal(int timer)
+    {
+        if (timer > 30 && timer <= 90) return "Red";
+        else if (timer == 30) return "Orange";
+        else if (timer == 0) return "Green";
+        else return "Invalid";
+    }
+
+    public int FirstStableIndex2(int[] nums, int k)
+    {
+        Span<int> span1 = stackalloc int[nums.Length];
+        Span<int> span2 = stackalloc int[nums.Length];
+
+        span1[0] = nums[0];
+        span2[^1] = nums[^1];
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            span1[i] = Math.Max(span1[i - 1], nums[i]);
+        }
+
+        for (int i = nums.Length - 2; i >= 0; i--)
+        {
+            span2[i] = Math.Min(span2[i + 1], nums[i]);
+        }
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            var num = span1[i] - span2[i];
+            if (num <= k) return i;
+        }
+
+        return -1;
+    }
+
+    public int FirstStableIndex(int[] nums, int k)
+    {
+        Span<int> span1 = stackalloc int[nums.Length];
+        Span<int> span2 = stackalloc int[nums.Length];
+
+        span1[0] = nums[0];
+        span2[^1] = nums[^1];
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            span1[i] = Math.Max(span1[i - 1], nums[i]);
+        }
+
+        for (int i = nums.Length - 2; i >= 0; i--)
+        {
+            span2[i] = Math.Min(span2[i + 1], nums[i]);
+        }
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            var num = span1[i] - span2[i];
+            if (num <= k) return i;
+        }
+
+        return -1;
+    }
+
+    public bool UniformArray(int[] nums1)
+    {
+        var min = nums1[0];
+        var hasOdd = false;
+
+        foreach (var n in nums1)
+        {
+            min = Math.Min(min, n);
+            if (!hasOdd && n % 2 != 0) hasOdd = true;
+        }
+
+        if (min % 2 != 0) return true;
+
+        return !hasOdd;
+    }
+
+    public int[] SuccessfulPairs(int[] spells, int[] potions, long success)
+    {
+        var result = new int[spells.Length];
+
+        Array.Sort(potions);
+
+        for (int i = 0; i < spells.Length; i++)
+        {
+            if ((long)potions[0] * spells[i] >= success) result[i] = potions.Length;
+            else if ((long)potions[^1] * spells[i] < success) continue;
+            else
+            {
+                var left = 0;
+                var right = potions.Length - 1;
+
+                while (left <= right)
+                {
+                    var mid = left + (right - left) / 2;
+
+                    if ((long)potions[mid] * spells[i] >= success)
+                    {
+                        right = mid - 1;
+                    }
+                    else
+                    {
+                        left = mid + 1;
+                    }
+                }
+
+                result[i] = potions.Length - left;
+            }
+        }
+
+        return result;
+    }
+
+    public int MinMoves(string[] classroom, int energy)
+    {
+        var rows = classroom.Length;
+        var columns = classroom[0].Length;
+
+        var garbageCount = 0;
+        var startRow = 0;
+        var startColumn = 0;
+
+        var garbagePositions = new List<(int row, int col)>();
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < classroom[row].Length; column++)
+            {
+                if (classroom[row][column] == 'S')
+                {
+                    startRow = row;
+                    startColumn = column;
+                }
+                else if (classroom[row][column] == 'L')
+                {
+                    garbageCount++;
+                    garbagePositions.Add((row, column));
+                }
+            }
+        }
+
+        if (garbageCount == 0) return 0;
+
+        var queue = new Queue<(int row, int column, int garbage, int energyCount, int steps)>();
+        var visited = new bool[rows, columns, 1 << garbageCount, energy + 1];
+
+        queue.Enqueue((startRow, startColumn, 0, energy, 0));
+        visited[startRow, startColumn, 0, energy] = true;
+        var directions = new (int rowShift, int columnShift)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
+
+        while (queue.Count > 0)
+        {
+            var size = queue.Count;
+
+            for (int i = 0; i < size; i++)
+            {
+                var (row, column, garbage, energyCount, steps) = queue.Dequeue();
+
+                foreach (var (rowShift, columnShift) in directions)
+                {
+                    var shiftedRow = row + rowShift;
+                    var shiftedColumn = column + columnShift;
+
+                    if (shiftedRow < 0 ||
+                        shiftedColumn < 0 ||
+                        shiftedRow > rows - 1 ||
+                        shiftedColumn > columns - 1 ||
+                        energyCount == 0 ||
+                        classroom[shiftedRow][shiftedColumn] == 'X')
+                        continue;
+
+                    var garbageMask = garbage;
+                    var ec = energyCount - 1;
+                    var sc = steps + 1;
+
+                    if (classroom[shiftedRow][shiftedColumn] == 'L')
+                    {
+                        var garbageIndex = garbagePositions.IndexOf((shiftedRow, shiftedColumn));
+
+                        garbageMask = garbage | (1 << garbageIndex);
+
+                        if (garbageMask == (1 << garbageCount) - 1)
+                            return sc;
+                    }
+                    else if (classroom[shiftedRow][shiftedColumn] == 'R')
+                    {
+                        ec = energy;
+                    }
+
+                    if (!visited[shiftedRow, shiftedColumn, garbageMask, ec])
+                    {
+                        queue.Enqueue((shiftedRow, shiftedColumn, garbageMask, ec, sc));
+                        visited[shiftedRow, shiftedColumn, garbageMask, ec] = true;
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public bool IsAdjacentDiffAtMostTwo(string s)
+    {
+        for (int i = 1; i < s.Length; i++)
+        {
+            if (Math.Abs(s[i] - s[i - 1]) > 2)
+                return false;
+        }
+
+        return true;
+    }
+
+    public int[] NodesBetweenCriticalPoints(ListNode head)
+    {
+        var pointer = head;
+
+        while (pointer.next != null)
+        {
+            if ((pointer.next?.val > pointer.val && pointer.next?.val > pointer.next?.next?.val) ||
+                (pointer.next?.val < pointer.val && pointer.next?.val < pointer.next?.next?.val))
+                break;
+
+            pointer = pointer.next;
+        }
+
+        if (pointer == null) return [-1, -1];
+
+        var max = 0;
+        var min = int.MaxValue;
+
+        var currentMin = 0;
+        var step = 0;
+
+        while (pointer.next != null)
+        {
+            if ((pointer.next?.val > pointer.val && pointer.next?.val > pointer.next?.next?.val) ||
+                (pointer.next?.val < pointer.val && pointer.next?.val < pointer.next?.next?.val))
+            {
+                max = step;
+                if (currentMin > 0)
+                {
+                    min = Math.Min(currentMin, min);
+                    currentMin = 0;
+                }
+            }
+
+            pointer = pointer.next;
+            step++;
+            currentMin++;
+        }
+
+        if (max == 0 || min == int.MaxValue) return [-1, -1];
+
+        return [min, max];
+    }
+
+    public int MinimumDeletions(int[] nums)
+    {
+        var min = nums[0];
+        var minIndex = 0;
+        var max = nums[0];
+        var maxIndex = 0;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            var num = nums[i];
+
+            if (num < min)
+            {
+                min = num;
+                minIndex = i;
+            }
+
+            if (num > max)
+            {
+                max = num;
+                maxIndex = i;
+            }
+        }
+
+        if (maxIndex < minIndex)
+        {
+            (maxIndex, minIndex) = (minIndex, maxIndex);
+
+        }
+
+        var aroundRemoving = minIndex + (nums.Length - maxIndex) + 1;
+        var leftRemoving = maxIndex + 1;
+        var rightRemoving = nums.Length - minIndex;
+
+        return Math.Min(aroundRemoving, Math.Min(leftRemoving, rightRemoving));
+    }
+
     public int CountGoodSubstrings(string s)
     {
         if (s.Length < 3) return 0;
@@ -5236,23 +5754,30 @@ class LeetCode
 
     public int NumDistinct(string s, string t)
     {
-        var dp = new int[s.Length + 1, t.Length + 1];
+        var dp = new int[s.Length + 1][];
+
+        for (int i = 0; i < dp.Length; i++)
+        {
+            dp[i] = new int[t.Length + 1];
+        }
 
         for (int i = 0; i <= s.Length; i++)
         {
-            dp[i, 0] = 1;
+            dp[i][0] = 1;
         }
 
-        for (int i = 1; i < dp.GetLength(0); i++)
+        for (int i = 1; i < dp.Length; i++)
         {
-            for (int j = 1; j < dp.GetLength(1); j++)
+            for (int j = 1; j < dp[i].Length; j++)
             {
-                if (s[i - 1] == t[j - 1]) dp[i, j] = dp[i - 1, j - 1] + dp[i - 1, j];
-                else dp[i, j] = dp[i - 1, j];
+                if (s[i - 1] == t[j - 1])
+                    dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j];
+                else
+                    dp[i][j] = dp[i - 1][j];
             }
         }
 
-        return dp[s.Length, t.Length];
+        return dp[s.Length][t.Length];
     }
 
     public int MinimumDeleteSum(string s1, string s2)
@@ -8876,27 +9401,6 @@ class LeetCode
         cache[lineNum][index] = max;
 
         return max;
-    }
-
-    public long ParallelSum(int[] numbers)
-    {
-        var sum = 0L;
-
-        Parallel.ForEach(
-            Partitioner.Create(0, numbers.Length),
-            () => 0L,
-            (range, state, localSum) =>
-            {
-                for (int i = range.Item1; i < range.Item2; i++)
-                {
-                    localSum += numbers[i];
-                }
-                return localSum;
-            },
-            localSum => Interlocked.Add(ref sum, localSum)
-            );
-
-        return sum;
     }
 
     public int[] FindOrder(int numCourses, int[][] prerequisites)
