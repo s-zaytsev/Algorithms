@@ -5,6 +5,617 @@ using System.Text;
 
 class LeetCode
 {
+
+    public bool IsPerfectSquare(int num)
+    {
+        if (num <= 2) return true;
+
+        long left = 1;
+        long right = num >> 1;
+
+        while (left <= right)
+        {
+            long mid = left + (right - left) / 2;
+
+            long product = mid * mid;
+
+            if (product == num) return true;
+            else if (product < num) left = mid + 1;
+            else right = mid - 1;
+        }
+
+        return false;
+    }
+
+    public int EarliestTime(int[][] tasks)
+    {
+        var result = int.MaxValue;
+
+        foreach (var pair in tasks)
+            result = Math.Min(result, pair[0] + pair[1]);
+
+        return result;
+    }
+
+    public string RemoveOuterParentheses(string s)
+    {
+        var list = new List<string>();
+
+        var left = 0;
+        var right = 0;
+
+        var stack = new Stack<char>();
+
+        while (right < s.Length)
+        {
+            if (stack.Count == 0 && right != left)
+            {
+                list.Add(s.Substring(left, right - left));
+                left = right;
+            }
+
+            if (s[right] == ')' && stack.TryPeek(out var top) && top == '(')
+                stack.Pop();
+            else stack.Push(s[right]);
+
+            right++;
+        }
+
+        list.Add(s.Substring(left, right - left));
+
+        var result = string.Empty;
+
+        foreach (var item in list)
+        {
+            if (item.Length > 2)
+            {
+                result += item.Substring(1, item.Length - 2);
+            }
+        }
+
+        return result;
+    }
+
+    public int MinimumIndex(int[] capacity, int itemSize)
+    {
+        var minCapacity = int.MaxValue;
+        var index = -1;
+
+        for (int i = 0; i < capacity.Length; i++)
+        {
+            var current = capacity[i];
+            if (current == itemSize) return i;
+            if (current > itemSize && current < minCapacity)
+            {
+                minCapacity = current;
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
+    public int MinAddToMakeValid(string s)
+    {
+        var stack = new Stack<char>();
+
+        foreach (var c in s)
+        {
+            if (c == ')' && stack.TryPeek(out var top) && top == '(')
+                stack.Pop();
+            else stack.Push(c);
+        }
+
+        return stack.Count;
+    }
+
+    public string GenerateTag(string caption)
+    {
+        var sb = new StringBuilder(101);
+        sb.Append("#");
+
+        var shouldBeUpper = false;
+        var index = 0;
+
+        while (index < caption.Length && caption[index] == ' ')
+            index++;
+
+        while (sb.Length < 100 && index < caption.Length)
+        {
+            if (caption[index] == ' ') shouldBeUpper = true;
+            else if (shouldBeUpper)
+            {
+                sb.Append(char.ToUpper(caption[index]));
+                shouldBeUpper = false;
+            }
+            else sb.Append(char.ToLower(caption[index]));
+
+            index++;
+        }
+
+        return sb.ToString();
+    }
+
+    public int AbsDifference(int[] nums, int k)
+    {
+        var arr = new int[101];
+
+        foreach (var n in nums)
+            arr[n]++;
+
+        var min = 0;
+        var max = 0;
+
+        var minK = k;
+        var maxK = k;
+
+        for (int i = 0; i < arr.Length && minK > 0; i++)
+        {
+            if (arr[i] > 0)
+            {
+                for (int j = 0; j < arr[i] && minK > 0; j++)
+                {
+                    min += i;
+                    minK--;
+                }
+            }
+        }
+
+        for (int i = arr.Length - 1; i >= 0 && maxK > 0; i--)
+        {
+            if (arr[i] > 0)
+            {
+                for (int j = 0; j < arr[i] && maxK > 0; j++)
+                {
+                    max += i;
+                    maxK--;
+                }
+            }
+        }
+
+        return Math.Abs(max - min);
+    }
+
+    public int FirstMatchingIndex(string s)
+    {
+        var left = 0;
+        var right = s.Length - 1;
+
+        while (left <= right)
+        {
+            if (s[left++] == s[right--])
+                return left - 1;
+        }
+
+        return -1;
+    }
+
+    public int MinimumSwaps(int[] nums)
+    {
+        var result = 0;
+
+        var left = 0;
+        var right = nums.Length - 1;
+
+        while (left < right)
+        {
+            while (nums[right] == 0 && left < right)
+            {
+                right--;
+            }
+
+            while (nums[left] != 0 && left < right)
+            {
+                left++;
+            }
+
+            if (left < right)
+            {
+                (nums[left], nums[right]) = (nums[right], nums[left]);
+                result++;
+                left++;
+                right--;
+            }
+        }
+
+        return result;
+    }
+
+    public IList<string> GenerateParenthesis(int n)
+    {
+        var result = new List<string>();
+        GenerateParenthesisDFS(n, 0, 0, stackalloc char[n * 2], 0, result);
+        return result;
+    }
+
+    private void GenerateParenthesisDFS(int n, int open, int close, Span<char> span, int index, List<string> result)
+    {
+        if (open == n && close == n)
+        {
+            result.Add(span.ToString());
+            return;
+        }
+
+        if (open < n)
+        {
+            span[index] = '(';
+            GenerateParenthesisDFS(n, open + 1, close, span, index + 1, result);
+        }
+
+        if (close < open)
+        {
+            span[index] = ')';
+            GenerateParenthesisDFS(n, open, close + 1, span, index + 1, result);
+        }
+    }
+
+    public int CountBattleships(char[][] board)
+    {
+        var result = 0;
+
+        for (int i = 0; i < board.Length; i++)
+        {
+            for (int j = 0; j < board[i].Length; j++)
+            {
+                if (board[i][j] == 'X')
+                {
+                    CountBattleshipsDFS(board, i, j);
+                    result++;
+                }
+
+            }
+        }
+
+        return result;
+    }
+
+    private void CountBattleshipsDFS(char[][] board, int row, int column)
+    {
+        if (row < 0 ||
+            column < 0 ||
+            row >= board.Length ||
+            column >= board[row].Length ||
+            board[row][column] == '.')
+            return;
+
+        board[row][column] = '.';
+
+        CountBattleshipsDFS(board, row + 1, column);
+        CountBattleshipsDFS(board, row - 1, column);
+        CountBattleshipsDFS(board, row, column + 1);
+        CountBattleshipsDFS(board, row, column - 1);
+    }
+
+    public bool IsMiddleElementUnique(int[] nums)
+    {
+        var arr = new int[101];
+
+        foreach (var n in nums)
+            arr[n]++;
+
+        return arr[nums[nums.Length >> 1]] == 1;
+    }
+
+    public int FirstUniqueEven(int[] nums)
+    {
+        var dict = new Dictionary<int, int>();
+
+        foreach (var n in nums)
+        {
+            if (!dict.ContainsKey(n)) dict.Add(n, 1);
+            else dict[n]++;
+        }
+
+        foreach (var pair in dict)
+        {
+            if (pair.Key % 2 == 0 && pair.Value == 1)
+                return pair.Key;
+        }
+
+        return -1;
+    }
+
+    public bool HasValidPath(char[][] grid)
+    {
+        Span<int> dpTop = stackalloc int[grid[0].Length];
+        dpTop[0] = grid[0][0] == '(' ? 1 : -1;
+
+        for (int i = 1; i < dpTop.Length; i++)
+        {
+            var num = grid[0][i] == '(' ? 1 : -1;
+            dpTop[i] = dpTop[i - 1] + num;
+        }
+
+        Span<int> dpBottom = stackalloc int[grid[0].Length];
+
+        for (int i = 1; i < grid.Length; i++)
+        {
+            var num = grid[i][0] == '(' ? 1 : -1;
+            dpBottom[0] = num + dpTop[0];
+
+            for (int j = 1; j < grid[i].Length; j++)
+            {
+                num = grid[i][j] == '(' ? 1 : -1;
+                var top = dpTop[j] + num;
+                var left = dpBottom[j - 1] + num;
+
+                var closest = Math.Abs(0 - top) < Math.Abs(0 - left) ? top : left;
+                dpBottom[j] = closest;
+            }
+
+            dpTop = dpBottom;
+        }
+
+        return dpTop[^1] == 0;
+    }
+
+    public int MaxDepth(string s)
+    {
+        var max = 0;
+        var current = 0;
+
+        foreach (var c in s)
+        {
+            if (c == '(')
+                max = Math.Max(++current, max);
+            else if (c == ')')
+                current--;
+        }
+
+        return max;
+    }
+
+    public string ReverseParentheses(string s)
+    {
+        var stack = new Stack<char>();
+        var queue = new Queue<char>();
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] == ')')
+            {
+                while (stack.TryPop(out var top) && top != '(')
+                    queue.Enqueue(top);
+
+                while (queue.Count > 0)
+                    stack.Push(queue.Dequeue());
+            }
+            else
+                stack.Push(s[i]);
+        }
+
+        return new string(stack.Reverse().ToArray());
+    }
+
+    public string Evaluate(string s, IList<IList<string>> knowledge)
+    {
+        var words = new Dictionary<string, string>(knowledge.Count);
+
+        foreach (var pair in knowledge)
+        {
+            words.Add(pair[0], pair[1]);
+        }
+
+        var sb = new StringBuilder();
+
+        var index = 0;
+
+        while (index < s.Length)
+        {
+            if (s[index] != '(')
+            {
+                sb.Append(s[index]);
+            }
+            else
+            {
+                index++;
+
+                var left = index;
+                var right = index;
+
+                while (s[right] != ')')
+                {
+                    right++;
+                }
+
+                var word = s.Substring(left, right - left);
+                if (words.TryGetValue(word, out var value)) sb.Append(value);
+                else sb.Append('?');
+
+                index = right;
+            }
+
+            index++;
+        }
+
+        return sb.ToString();
+    }
+
+    public string LargestEven(string s)
+    {
+        var lastIndex = s.Length - 1;
+
+        while (lastIndex >= 0 && s[lastIndex] != '2')
+            lastIndex--;
+
+        if (lastIndex < 0) return string.Empty;
+        return s.Substring(0, lastIndex);
+    }
+
+    public int SmallestIndex(int[] nums)
+    {
+        for (int i = 0; i < nums.Length; i++)
+        {
+            var n = nums[i];
+            var sum = 0;
+
+            while (n > 0)
+            {
+                var reminder = n % 10;
+                sum += reminder;
+                n /= 10;
+            }
+
+            if (sum == i) return i;
+        }
+
+        return -1;
+    }
+
+    public bool CheckPerfectNumber(int num)
+    {
+        var sum = 0;
+
+        for (int i = 1; i < num && sum < num; i++)
+        {
+            if (num % i == 0) sum += i;
+        }
+
+        return sum == num;
+    }
+
+    public int[] SingleNumberIII(int[] nums)
+    {
+        var hashSet = new HashSet<int>(nums.Length);
+
+        foreach (var n in nums)
+        {
+            if (hashSet.Contains(n)) hashSet.Remove(n);
+            else hashSet.Add(n);
+        }
+
+        return hashSet.ToArray();
+    }
+
+    public string MakeGood(string s)
+    {
+        var stack = new Stack<char>();
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (stack.TryPeek(out var top) && char.ToLower(top) == char.ToLower(s[i]) && top != s[i])
+                stack.Pop();
+            else stack.Push(s[i]);
+        }
+
+        return new string([.. stack.Reverse()]);
+    }
+
+    public string FrequencySort(string s)
+    {
+        var dict = new Dictionary<char, int>();
+
+        foreach (var c in s)
+        {
+            if (dict.ContainsKey(c)) dict[c]++;
+            else dict.Add(c, 1);
+        }
+
+        var sb = new StringBuilder();
+
+        foreach (var pair in dict.OrderByDescending(x => x.Value))
+        {
+            for (int i = 0; i < pair.Value; i++)
+            {
+                sb.Append(pair.Key);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    public bool CheckOverlap(int radius, int xCenter, int yCenter, int x1, int y1, int x2, int y2)
+    {
+        int nearestX = Math.Clamp(xCenter, x1, x2);
+        int nearestY = Math.Clamp(yCenter, y1, y2);
+
+        int deltaX = nearestX - xCenter;
+        int deltaY = nearestY - yCenter;
+
+        return Math.Sqrt(deltaX * deltaX + deltaY * deltaY) <= radius;
+    }
+
+    public string GenerateTheString(int n)
+    {
+        Span<char> span = stackalloc char[n];
+
+        for (int i = 0; i < n; i++)
+            span[i] = 'a';
+
+        if (n % 2 == 0) span[^1] = 'b';
+        return span.ToString();
+    }
+
+    public IList<int> GetAllElements(TreeNode root1, TreeNode root2)
+    {
+        var result = new List<int>();
+        GetAllElementsDFS(root1, result);
+        GetAllElementsDFS(root2, result);
+
+        result.Sort();
+        return result;
+    }
+
+    private void GetAllElementsDFS(TreeNode node, List<int> nums)
+    {
+        if (node == null) return;
+
+        nums.Add(node.val);
+        GetAllElementsDFS(node.left, nums);
+        GetAllElementsDFS(node.right, nums);
+    }
+
+    public TreeNode SortedListToBST(ListNode head)
+    {
+        if (head == null)
+            return null;
+
+        if (head.next == null)
+            return new(head.val);
+
+        ListNode slow = head;
+        ListNode fast = head.next;
+        ListNode prev = null;
+
+        while (fast != null)
+        {
+            prev = slow;
+            slow = slow.next;
+            fast = fast.next?.next;
+        }
+
+        ListNode right = slow.next;
+        prev?.next = null;
+        ListNode left = head;
+
+        var tree = new TreeNode(slow.val, SortedListToBST(left), SortedListToBST(right));
+        return tree;
+    }
+
+    public int[] ShortestToChar(string s, char c)
+    {
+        var result = new int[s.Length];
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] != c) continue;
+
+            var left = i - 1;
+            var leftDistance = 1;
+
+            var right = i + 1;
+            var rightDistance = 1;
+
+            while (left >= 0 && s[left] != c && (result[left] == 0 || result[left] > leftDistance))
+                result[left--] = leftDistance++;
+
+            while (right < s.Length && s[right] != c && (result[right] == 0 || result[right] > rightDistance))
+                result[right++] = rightDistance++;
+        }
+
+        return result;
+    }
+
     public ListNode RemoveNodes(ListNode head)
     {
         var stack = new Stack<ListNode>();
@@ -22,7 +633,7 @@ class LeetCode
         }
 
         ListNode result = null;
-        
+
         while (stack.Count > 0)
         {
             var node = stack.Pop();
@@ -37,7 +648,7 @@ class LeetCode
     {
         return rec2[0] < rec1[2] &&
             rec2[1] < rec1[3] &&
-            rec2[2] > rec1[0] && 
+            rec2[2] > rec1[0] &&
             rec2[3] > rec1[1];
     }
 
@@ -197,12 +808,12 @@ class LeetCode
         var last = new int[26];
         Array.Fill(last, -1);
 
-        for (int i = 0 ; i < length; i++)
+        for (int i = 0; i < length; i++)
         {
             var lastIndex = s[i] - 'a';
             var dpIndex = i + 1;
             dp[dpIndex] = dp[i] * 2 % mod;
-            
+
             if (last[lastIndex] >= 0)
             {
                 dp[dpIndex] -= dp[last[lastIndex]];
