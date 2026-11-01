@@ -5,6 +5,502 @@ using System.Text;
 
 class LeetCode
 {
+    public int VowelConsonantScore(string s)
+    {
+        var vowels = new HashSet<char> { 'a', 'e', 'i', 'o', 'u' };
+
+        var v = 0;
+        var c = 0;
+
+        foreach (var letter in s)
+        {
+            if (vowels.Contains(letter)) v++;
+            else if (char.IsLetter(letter)) c++;
+        }
+
+        if (c == 0) return 0;
+
+        return v / c;
+    }
+
+    public int MaximumPossibleSize(int[] nums)
+    {
+        var stack = new Stack<int>();
+
+        for (int i = nums.Length - 1; i >= 0; i--)
+        {
+            var n = nums[i];
+            while (stack.TryPeek(out var top) && top < n)
+                stack.Pop();
+            stack.Push(n);
+        }
+
+        return stack.Count;
+    }
+
+    public int MinLengthAfterRemovals(string s)
+    {
+        var stack = new Stack<int>();
+
+        foreach (char c in s)
+        {
+            if (stack.TryPeek(out var top) && top != c)
+                stack.Pop();
+            else stack.Push(c);
+        }
+
+        return stack.Count;
+    }
+
+    public int DominantIndices(int[] nums)
+    {
+        var sum = 0;
+        var result = 0;
+
+        Span<double> arr = stackalloc double[nums.Length + 1];
+
+        for (int i = nums.Length - 1; i >= 1; i--)
+        {
+            arr[i] = (double)(nums[i] + sum) / (nums.Length - i);
+            sum += nums[i];
+
+            if (nums[i - 1] > arr[i]) result++;
+        }
+
+        return result;
+    }
+
+    public string[] CreateGrid(int m, int n)
+    {
+        var result = new string[m];
+
+        Span<char> span = stackalloc char[n];
+
+        for (int i = 0; i < n; i++)
+        {
+            span[i] = '.';
+        }
+
+        result[0] = span.ToString();
+
+        for (int i = 1; i < m; i++)
+        {
+            for (int j = 0; j < n - 1; j++)
+            {
+                span[j] = '#';
+            }
+
+            span[n - 1] = '.';
+            result[i] = span.ToString();
+        }
+
+        return result;
+    }
+
+    public int CountIslands(int[][] grid, int k)
+    {
+        var result = 0;
+
+        for (int i = 0; i < grid.Length; i++)
+        {
+            for (int j = 0; j <  grid[i].Length; j++)
+            {
+                if (grid[i][j] == 0) continue;
+
+                var sum = 0L;
+                CountIslandsDFS(grid, i, j, ref sum);
+
+                if (sum % k == 0)
+                    result++;
+            }
+        }
+
+        return result;
+    }
+
+    private void CountIslandsDFS(int[][] grid, int row, int column, ref long sum)
+    {
+        if (row < 0 ||
+            row >= grid.Length ||
+            column < 0 ||
+            column >= grid[row].Length ||
+            grid[row][column] == 0)
+            return;
+
+        sum += grid[row][column];
+        grid[row][column] = 0;
+
+        CountIslandsDFS(grid, row + 1, column, ref sum);
+        CountIslandsDFS(grid, row - 1, column, ref sum);
+        CountIslandsDFS(grid, row, column + 1, ref sum);
+        CountIslandsDFS(grid, row, column - 1, ref sum);
+    }
+
+    public int CalculateScore(int a, int b)
+    {
+        var scoreA = 0;
+
+        while (a != 0)
+        {
+            a = a & (a - 1);
+            scoreA++;
+        }
+
+        var scoreB = 0;
+
+        while (b!= 0)
+        {
+            b = b & (b - 1);
+            scoreB++;
+        }
+
+        return scoreA >= scoreB ? scoreA * scoreB : scoreB / scoreA;
+    }
+
+    public int CountDaysTogether(string arriveAlice, string leaveAlice, string arriveBob, string leaveBob)
+    {
+        int GetDayOfYear(string str)
+        {
+            var day = (str[3] - '0') * 10 + str[4] - '0';
+            var month = (str[0] - '0') * 10 + str[1] - '0';
+            var date = new DateTime(2026, month, day);
+
+            return date.DayOfYear;
+        }
+
+        var result = 0;
+
+        var aliceStart = GetDayOfYear(arriveAlice);
+        var aliceEnd = GetDayOfYear(leaveAlice);
+
+        var bobStart = GetDayOfYear(arriveBob);
+        var bobEnd = GetDayOfYear(leaveBob);
+
+        for (int i = 1; i <= 365; i++)
+        {
+            if (i >= aliceStart && i <= aliceEnd && i >= bobStart && i <= bobEnd)
+                result++;
+        }
+
+        return result;
+    }
+
+    public int ThirdMax(int[] nums)
+    {
+        int? first = null;
+        int? second = null;
+        int? third = null;
+
+        foreach (var n in nums)
+        {
+            if (!first.HasValue || n >= first.Value)
+            {
+                if (first.HasValue && first.Value == n) continue;
+                third = second;
+                second = first;
+                first = n;
+            }
+            else if (!second.HasValue || n >= second.Value)
+            {
+                if (second.HasValue && second.Value == n) continue;
+                third = second;
+                second = n;
+            }
+            else if (!third.HasValue || n >= third.Value)
+            {
+                if (third.HasValue && third.Value == n) continue;
+                third = n;
+            }
+        }
+
+        return third ?? first.Value;
+    }
+
+    public bool CheckPrimeFrequency(int[] nums)
+    {
+        bool IsSimple(int n)
+        {
+            for (int i = 2; i <= n >> 1; i++)
+            {
+                if (n % i == 0)
+                    return false;
+            }
+
+            return true;
+        }
+
+        var arr = new int[101];
+
+        foreach (var n in nums) arr[n]++;
+
+        foreach (var n in arr)
+            if (n > 1 && IsSimple(n))
+                return true;
+
+        return false;
+    }
+
+    public int CountSpecialIntegers(int[] nums)
+    {
+        var result = 0;
+        var dict = new Dictionary<int, List<int>>();
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            if (dict.TryGetValue(nums[i], out var value)) value.Add(i);
+            else dict.Add(nums[i], [i]);
+        }
+
+        foreach (var pair in dict)
+        {
+            if (pair.Value.Count != 3) continue;
+            if (pair.Value[1] - pair.Value[0] == pair.Value[2] - pair.Value[1])
+                result++;
+        }
+
+        return result;
+    }
+
+    public bool ContainsNearbyDuplicate(int[] nums, int k)
+    {
+        var dict = new Dictionary<int, int>();
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            if (!dict.TryGetValue(nums[i], out int value))
+                dict.Add(nums[i], i);
+
+            else if (Math.Abs(i - value) <= k)
+                return true;
+
+            else dict[nums[i]] = i;
+        }
+
+        return false;
+    }
+
+    public IList<int> TargetIndices(int[] nums, int target)
+    {
+        Array.Sort(nums);
+
+        var left = 0;
+        var right = nums.Length - 1;
+
+        while (left <= right)
+        {
+            var mid = left + (right - left) / 2;
+
+            if (nums[mid] == target)
+            {
+                left = mid;
+                right = mid;
+
+                while (left > 0 && nums[left - 1] == target)
+                    left--;
+
+                while (right < nums.Length - 1 && nums[right + 1] == target)
+                    right++;
+
+                var result = new List<int>(right - left + 1);
+
+                for (int i = left; i <= right; i++)
+                {
+                    result.Add(i);
+                }
+
+                return result;
+            }
+
+            if (nums[mid] > target) right = mid - 1;
+            else left = mid + 1;
+        }
+
+        return [];
+    }
+
+    public int MinOperations(string[] logs)
+    {
+        var result = 0;
+
+        foreach (var log in logs)
+        {
+            if (log == "../")
+            {
+                if (result > 0) result--;
+            }
+            else if (log == "./") continue;
+            else result++;
+        }
+
+        return result;
+    }
+
+    public int FinalPositionOfSnake(int n, IList<string> commands)
+    {
+        var result = 0;
+
+        foreach (var command in commands)
+        {
+            if (command == "UP") result -= n;
+            else if (command == "DOWN") result += n;
+            else if (command == "RIGHT") result += 1;
+            else result -= 1;
+        }
+
+        return result;
+    }
+
+    public IList<IList<int>> KSmallestPairs(int[] nums1, int[] nums2, int k)
+    {
+        var result = new List<IList<int>>(k);
+
+        var queue = new PriorityQueue<(int, int), int>(
+            k + 1, Comparer<int>.Create((x, y) => y - x));
+
+        var maxPriority = int.MaxValue;
+
+        foreach (var num1 in nums1)
+        {
+            foreach (var num2 in nums2)
+            {
+                var sum = num1 + num2;
+                if (sum >= maxPriority) break;
+
+                queue.Enqueue((num1, num2), sum);
+
+                if (queue.Count > k)
+                    queue.TryDequeue(out _, out maxPriority);
+            }
+        }
+
+        while (queue.Count > 0)
+        {
+            var (num1, num2) = queue.Dequeue();
+            result.Add([num1, num2]);
+        }
+
+        return result;
+    }
+
+    public int SumCounts(IList<int> nums)
+    {
+        var result = 0;
+        var hashset = new HashSet<int>();
+
+        for (int i = 0; i < nums.Count; i++)
+        {
+            for (int j = i; j < nums.Count; j++)
+            {
+                hashset.Add(nums[j]);
+                result += hashset.Count * hashset.Count;
+            }
+
+            hashset.Clear();
+        }
+
+        return result;
+    }
+
+    public int MaximizeExpressionOfThree(int[] nums)
+    {
+        var max = int.MinValue;
+        var prevMax = int.MinValue;
+        var min = int.MaxValue;
+
+        foreach (var n in nums)
+        {
+            if (n > max)
+            {
+                prevMax = max;
+                max = n;
+            }
+            else if (n > prevMax)
+            {
+                prevMax = n;
+            }
+
+            if (n < min) min = n;
+        }
+
+        return max + prevMax - min;
+    }
+
+    public bool ThreeFibonacciSum(int n)
+    {
+        var num1 = 0;
+        var num2 = 1;
+        var num3 = 1;
+
+        var sum = num1 + num2 + num3;
+
+        while (sum <= n)
+        {
+            if (sum == n) return true;
+
+            num1 = num2;
+            num2 = num3;
+            num3 = num1 + num2;
+
+            sum = num1 + num2 + num3;
+        }
+
+        return false;
+    }
+
+    public char NextGreatestLetter(char[] letters, char target)
+    {
+        var left = 0;
+        var right = letters.Length - 1;
+
+        while (left <= right)
+        {
+            var mid = left + (right - left) / 2;
+
+            if (letters[mid] == target) return letters[mid + 1];
+            else if (letters[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+
+        return letters[0];
+    }
+
+    public int MySqrt(int x)
+    {
+        if (x < 2) return x;
+
+        long left = 0;
+        long right = x >> 1;
+
+        while (left <= right)
+        {
+            long mid = left + (right - left) / 2;
+            long midNext = mid + 1;
+
+            long product = mid * mid;
+            long nextProduct = midNext * midNext;
+
+            if (product == x) return (int)mid;
+            else if (product < x && nextProduct > x) return (int)mid;
+            else if (product < x) left = mid + 1;
+            else right = mid - 1;
+        }
+
+        return -1;
+    }
+
+    public int SumOfSquares(int[] nums)
+    {
+        var result = 0;
+        var n = nums.Length;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (n % (i + 1) == 0)
+                result += nums[i] * nums[i];
+        }
+
+        return result;
+    }
 
     public bool IsPerfectSquare(int num)
     {
