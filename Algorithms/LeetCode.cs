@@ -5,6 +5,274 @@ using System.Text;
 
 class LeetCode
 {
+    public IList<IList<string>> FindMismatchedSegments(string s1, string s2)
+    {
+        var result = new List<IList<string>>();
+
+        var start = 0;
+        var left = 0;
+        var right = 0;
+
+        while (right < s1.Length)
+        {
+            if (s1[left] == s2[right])
+            {
+                if (start == right)
+                {
+                    left++;
+                    right++;
+                    start = left;
+                }
+                else
+                {
+                    result.Add([s1[start..right], s2[start..right]]);
+                    left++;
+                    right++;
+                    start = right;
+                }
+            }
+            else
+            {
+                left++;
+                right++;
+            }
+        }
+
+        if (start != right) result.Add([s1[start..right], s2[start..right]]);
+
+        return result;
+    }
+
+    public IList<int> FindDuplicates(int[] nums)
+    {
+        var arr = new bool[100001];
+        var result = new List<int>();
+
+        foreach (var n in nums)
+        {
+            if (arr[n]) result.Add(n);
+            else arr[n] = true;
+        }
+
+        return result;
+    }
+
+    public int CountServers(int[][] grid)
+    {
+        var result = 0;
+
+        for (int i = 0; i < grid.Length; i++)
+        {
+            var hashSet = new HashSet<int>(grid[i].Length);
+
+            for (int j = 0; j < grid[i].Length; j++)
+            {
+                if (grid[i][j] == 1) hashSet.Add(j);
+            }
+
+            if (hashSet.Count > 1) result += hashSet.Count;
+            else
+            {
+                foreach (int column in hashSet)
+                {
+                    var count = 0;
+                    for (int r = 0; r < grid.Length; r++)
+                    {
+                        if (grid[r][column] == 1) count++;
+                    }
+                    if (count > 1) result++;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public IList<int> LexicalOrder(int n)
+    {
+        var result = new int[n];
+        var index = 0;
+
+        for (int i = 1; i <= 9 && i <= n; i++)
+        {
+            LexicalOrderDFS(i, n, result, ref index);
+        }
+
+        return result;
+    }
+
+    private void LexicalOrderDFS(int current, int n, int[] result, ref int index)
+    {
+        if (current > n) return;
+
+        result[index++] = current;
+
+        for (int i = 0; i <= 9 && i <= n; i++)
+        {
+            LexicalOrderDFS(current * 10 + i, n, result, ref index);
+        }
+    }
+
+    public TreeNode AddOneRow(TreeNode root, int val, int depth)
+    {
+        if (depth == 1) return new TreeNode(val, root);
+
+        AddOneRowDFS(root, val, depth, 1);
+        return root;
+    }
+
+    private void AddOneRowDFS(TreeNode root, int val, int depth, int currentDepth) 
+    {
+        if (root == null) return;
+
+        if (currentDepth == depth - 1)
+        {
+            var nextLeft = root.left;
+            var nextRight = root.right;
+
+            root.left = new(val, nextLeft);
+            root.right = new(val, null, nextRight);
+            return;
+        }
+
+        AddOneRowDFS(root.left, val, depth, currentDepth + 1);
+        AddOneRowDFS(root.right, val, depth, currentDepth + 1);
+    }
+
+    public int FindTheDistanceValue(int[] arr1, int[] arr2, int d)
+    {
+        var count = 0;
+
+        foreach (var num1 in arr1)
+        {
+            var isCorrect = true;
+
+            foreach (var num2 in arr2)
+            {
+                var distance = Math.Abs(num1 - num2);
+
+                if (distance <= d)
+                {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) count++;
+        }
+
+        return count;
+    }
+
+    public int MinMergedInteger(int[] nums)
+    {
+        var min = int.MaxValue;
+
+        for (int i = 0; i < nums.Length; i += 2)
+        {
+            var current1 = nums[i + 1];
+            var current2 = nums[i];
+
+            var num = 0;
+            var ratio = 1;
+
+            while (current1 > 0)
+            {
+                num += current1 % 10 * ratio;
+                current1 /= 10;
+                ratio *= 10;
+            }
+
+            while (current2 > 0)
+            {
+                num += current2 % 10 * ratio;
+                current2 /= 10;
+                ratio *= 10;
+            }
+
+            min = Math.Min(min, num);
+        }
+
+        return min;
+    }
+
+    public int MinMoves(int[] nums)
+    {
+        var max = 0;
+
+        foreach (var n in nums)
+            if (n > max) max = n;
+
+        var result = 0;
+
+        foreach (var n in nums)
+            result += max - n;
+
+        return result;
+    }
+
+    public int MinMoves2(int[] nums)
+    {
+        Array.Sort(nums);
+
+        var standard = nums[nums.Length >> 1];
+
+        var result = 0;
+
+        foreach (var n in nums)
+        {
+            result += Math.Abs(standard - n);
+        }
+
+        return result;
+    }
+
+    public TreeNode ReverseOddLevels(TreeNode root)
+    {
+        var queue = new Queue<TreeNode>();
+        queue.Enqueue(root);
+
+        var level = 0;
+        while (queue.Count > 0)
+        {
+            var size = queue.Count;
+
+            if (level % 2 != 0)
+            {
+                var arr = new TreeNode[size];
+
+                for (int i = 0; i < size; i++)
+                {
+                    var node = queue.Dequeue();
+
+                    if (node.left != null) queue.Enqueue(node.left);
+                    if (node.right != null) queue.Enqueue(node.right);
+
+                    arr[i] = node;
+                }
+
+                for (int i = 0; i < size >> 1; i++)
+                {
+                    (arr[i].val, arr[size - i - 1].val) = (arr[size - i - 1].val, arr[i].val);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    var node = queue.Dequeue();
+
+                    if (node.left != null) queue.Enqueue(node.left);
+                    if (node.right != null) queue.Enqueue(node.right);
+                }
+            }
+
+            level++;
+        }
+
+        return root;
+    }
+
     public int VowelConsonantScore(string s)
     {
         var vowels = new HashSet<char> { 'a', 'e', 'i', 'o', 'u' };
@@ -103,7 +371,7 @@ class LeetCode
 
         for (int i = 0; i < grid.Length; i++)
         {
-            for (int j = 0; j <  grid[i].Length; j++)
+            for (int j = 0; j < grid[i].Length; j++)
             {
                 if (grid[i][j] == 0) continue;
 
@@ -148,7 +416,7 @@ class LeetCode
 
         var scoreB = 0;
 
-        while (b!= 0)
+        while (b != 0)
         {
             b = b & (b - 1);
             scoreB++;
