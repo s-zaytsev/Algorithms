@@ -5,6 +5,330 @@ using System.Text;
 
 class LeetCode
 {
+    public int PasswordStrength(string password)
+    {
+        var hashSet = new HashSet<char>();
+
+        foreach (var c in password)
+        {
+            hashSet.Add(c);
+        }
+
+        var result = 0;
+
+        foreach (var c in hashSet)
+        {
+            if (char.IsLetter(c) && char.IsLower(c)) result++;
+            else if (char.IsLetter(c) && char.IsUpper(c)) result += 2;
+            else if (char.IsDigit(c)) result += 3;
+            else result += 5;
+        }
+
+        return result;
+    }
+
+    public int CountSpecialIntegers1(int[] nums)
+    {
+        var dict = new Dictionary<int, List<int>>();
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            if (dict.ContainsKey(nums[i])) dict[nums[i]].Add(i);
+            else dict.Add(nums[i], [i]);
+        }
+
+        var result = 0;
+
+        foreach (var pair in dict)
+        {
+            if (pair.Value.Count < 3) continue;
+
+            var distance = pair.Value[1] - pair.Value[0];
+
+            var isSpecial = true;
+            for (int i = 1; i < pair.Value.Count; i++)
+            {
+                if (pair.Value.ElementAt(i) - pair.Value.ElementAt(i - 1) != distance)
+                {
+                    isSpecial = false;
+                    break;
+                }
+            }
+
+            if (isSpecial) result++;
+        }
+
+        return result;
+    }
+
+    public int MinimizeSum(int[] nums)
+    {
+        var min1 = int.MaxValue;
+        var min2 = int.MaxValue;
+        var min3 = int.MaxValue;
+
+        var max1 = int.MinValue;
+        var max2 = int.MinValue;
+        var max3 = int.MinValue;
+
+        foreach (var n in nums)
+        {
+            if (n < min1)
+            {
+                min3 = min2;
+                min2 = min1;
+                min1 = n;
+            }
+            else if (n < min2)
+            {
+                min3 = min2;
+                min2 = n;
+            }
+            else if (n < min3)
+            {
+                min3 = n;
+            }
+
+            if (n > max1)
+            {
+                max3 = max2;
+                max2 = max1;
+                max1 = n;
+            }
+            else if (n > max2)
+            {
+                max3 = max2;
+                max2 = n;
+            }
+            else if (n > max3)
+            {
+                max3 = n;
+            }
+        }
+
+        return Math.Min(max1 - min3, Math.Min(max3 - min1, max2 - min2));
+    }
+
+    public bool IsPalindrome(int x)
+    {
+        if (x < 0) return false;
+
+        var list = new List<int>();
+
+        while (x > 0)
+        {
+            list.Add(x % 10);
+            x /= 10;
+        }
+
+        for (int i = 0; i < list.Count >> 1; i++)
+        {
+            if (list.ElementAt(i) != list.ElementAt(list.Count - i - 1))
+                return false;
+        }
+
+        return true;
+    }
+
+    public int PivotInteger1(int n)
+    {
+        var left = 1;
+        var right = n;
+
+        var leftSum = 1;
+        var rightSum = n;
+
+        while (left < right)
+        {
+            if (leftSum < rightSum)
+            {
+                left++;
+                leftSum += left;
+            }
+            else
+            {
+                right--;
+                rightSum += right;
+            }
+        }
+
+        if (leftSum == rightSum) return left;
+        else return -1;
+    }
+
+    public bool CanMakeArithmeticProgression1(int[] arr)
+    {
+        Array.Sort(arr);
+
+        var distance = arr[1] - arr[0];
+
+        for (int i = 1; i < arr.Length; i++)
+        {
+            if (arr[i] - arr[i - 1] != distance) return false;
+        }
+
+        return true;
+    }
+
+    public int MinChanges(string s)
+    {
+        var changes = 0;
+
+        for (int i = 0; i < s.Length; i += 2)
+        {
+            if (s[i] != s[i + 1]) changes++;
+        }
+
+        return changes;
+    }
+
+    public int[] LastVisitedCell(char[][] grid)
+    {
+        var m = grid.Length;
+        var n = grid[0].Length;
+
+        var row = 0;
+        var column = 0;
+
+        while (true)
+        {
+            var direction = grid[row][column];
+
+            var newRow = row;
+            var newColumn = column;
+
+            if (direction == 'R') newColumn++;
+            else if (direction == 'L') newColumn--;
+            else if (direction == 'U') newRow--;
+            else if (direction == 'D') newRow++;
+
+            if (newRow < 0 ||
+                newColumn < 0 ||
+                newRow >= m ||
+                newColumn >= n ||
+                grid[newRow][newColumn] == 'X')
+                    return [row, column];
+
+            grid[row][column] = 'X';
+            row = newRow;
+            column = newColumn;
+        }
+    }
+
+    public int MinimumSumSubarray(IList<int> nums, int l, int r)
+    {
+        var arr = new int[nums.Count + 1];
+
+        for (int i = 0; i < nums.Count; i++)
+        {
+            arr[i + 1] = nums[i] + arr[i];
+        }
+
+        var result = int.MaxValue;
+
+        for (int i = l; i <= r; i++)
+        {
+            var left = 0;
+            var right = i;
+
+            while (right < arr.Length)
+            {
+                var current = arr[right] - arr[left];
+
+                if (current > 0) result = Math.Min(result, current);
+                left++;
+                right++;
+            }
+        }
+
+        return result == int.MaxValue ? -1 : result;
+    }
+
+    public int DeepestLeavesSum(TreeNode root)
+    {
+        var queue = new Queue<TreeNode>();
+        queue.Enqueue(root);
+
+        var sum = 0;
+
+        while (queue.Count > 0)
+        {
+            var size = queue.Count;
+            var current = 0;
+
+            for (int i = 0; i < size; i++)
+            {
+                var node = queue.Dequeue();
+                current += node.val;
+
+                if (node.left != null) queue.Enqueue(node.left);
+                if (node.right != null) queue.Enqueue(node.right);
+            }
+
+            sum = current;
+        }
+
+        return sum;
+    }
+
+    public int LongestMonotonicSubarray(int[] nums)
+    {
+        var increment = 1;
+        var decrement = 1;
+
+        var result = 1;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            var current = nums[i];
+            var previous = nums[i - 1];
+
+            if (current > previous)
+            {
+                increment++;
+                decrement = 1;
+            }
+            else if (current < previous)
+            {
+                decrement++;
+                increment = 1;
+            }
+            else
+            {
+                increment = 1;
+                decrement = 1;
+            }
+
+            result = Math.Max(result, Math.Max(increment, decrement));
+        }
+
+        return result;
+    }
+
+    public double MinPrice(int[] prices, int[] discounts)
+    {
+        var result = 0d;
+
+        Array.Sort(prices);
+        Array.Sort(discounts);
+
+        var discountIndex = discounts.Length - 1;
+        var priceIndex = prices.Length - 1;
+
+        while (discountIndex >= 0 && priceIndex >= 0)
+        {
+            var newPrice = (double)prices[priceIndex--] * (100 - discounts[discountIndex--]) / 100;
+            result += newPrice;
+        }
+
+        while (priceIndex >= 0)
+        {
+            result += prices[priceIndex--];
+        }
+
+        return result;
+    }
+
     public IList<IList<string>> FindMismatchedSegments(string s1, string s2)
     {
         var result = new List<IList<string>>();
@@ -121,7 +445,7 @@ class LeetCode
         return root;
     }
 
-    private void AddOneRowDFS(TreeNode root, int val, int depth, int currentDepth) 
+    private void AddOneRowDFS(TreeNode root, int val, int depth, int currentDepth)
     {
         if (root == null) return;
 
