@@ -5,6 +5,197 @@ using System.Text;
 
 class LeetCode
 {
+    public int MinSubArrayLen(int target, int[] nums)
+    {
+        var prefix = new int[nums.Length + 1];
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+
+        var right = prefix.Length - 1;
+
+        var minSize = int.MaxValue;
+
+        while (prefix[right] >= target)
+        {
+            var left = 0;
+
+            while (left < right)
+            {
+                var sum = prefix[right] - prefix[left];
+                if (sum >= target)
+                    minSize = Math.Min(minSize, right - left);
+                if (sum < target) break;
+                left++;
+            }
+
+            right--;
+        }
+
+        return minSize == int.MaxValue ? 0 : minSize;
+    }
+
+    public int MinRange(int a, int b, int c)
+    {
+        if (a == b && a == c) return 0;
+
+        if (a > b && a > c)
+        {
+            var sum = b + c;
+            if (sum < a) a = sum; 
+        }
+        else if (b > a && b > c)
+        {
+            var sum = a + c;
+            if (sum < b) b = sum;
+        }
+        else
+        {
+            var sum = a + b;
+            if (sum < c) c = sum;
+        }
+
+        return Math.Max(Math.Max(a, b), c) - Math.Min(Math.Min(a, b), c);
+    }
+
+    public bool CanAliceWin(int n)
+    {
+        var isAliceTurn = true;
+        var amount = 10;
+
+        while (n >= amount)
+        {
+            n -= amount--;
+            isAliceTurn = !isAliceTurn;
+        }
+
+        return !isAliceTurn;
+    }
+
+    public int SumOfPrimesInRange(int n)
+    {
+        var result = 0;
+        var temp = n;
+        var reverse = 0;
+
+        while (temp > 0)
+        {
+            reverse *= 10;
+            reverse += temp % 10;
+            temp /= 10;
+        }
+
+        var left = Math.Min(n, reverse);
+        var right = Math.Max(n, reverse);
+
+        var notPrimeNumbers = new bool[right + 1];
+        notPrimeNumbers[0] = true;
+        notPrimeNumbers[1] = true;
+
+        for (int i = 2; i < notPrimeNumbers.Length; i++)
+        {
+            if (!notPrimeNumbers[i])
+            {
+                for (int j = i * i; j < notPrimeNumbers.Length; j += i)
+                {
+                    notPrimeNumbers[j] = true;
+                }
+            }
+        }
+
+        for (int i = left; i < notPrimeNumbers.Length; i++)
+        {
+            if (!notPrimeNumbers[i]) result += i;
+        }
+
+        return result;
+    }
+
+    public int CountDigitOccurrences(int[] nums, int digit)
+    {
+        var result = 0;
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            while (nums[i] > 0)
+            {
+                if (nums[i] % 10 == digit) result++;
+                nums[i] /= 10;
+            }
+        }
+
+        return result;
+    }
+
+    public string SortVowels(string s)
+    {
+        var vowels = new Dictionary<char, int>();
+
+        var min = 1;
+        var max = 1;
+
+        foreach (var c in s)
+        {
+            if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u')
+            {
+                if (vowels.ContainsKey(c))
+                {
+                    vowels[c]++;
+                    min = Math.Min(min, vowels[c]);
+                    max = Math.Max(max, vowels[c]);
+                }
+                else vowels.Add(c, 1);
+            }
+        }
+
+        if (min == max) return s;
+
+        var charArr = s.ToCharArray();
+        var index = 0;
+
+        while (index < charArr.Length)
+        {
+            char c = default;
+            int count = 0;
+
+            foreach (var pair in vowels)
+            {
+                if (pair.Value > count)
+                {
+                    c = pair.Key;
+                    count = pair.Value;
+                }
+            }
+
+            if (count == 0) break;
+
+            while (count > 0)
+            {
+                while (!vowels.ContainsKey(charArr[index]))
+                    index++;
+
+                charArr[index] = c;
+                index++;
+                count--;
+
+                vowels[c]--;
+            }
+        }
+
+        return new string(charArr);
+    }
+
+    public bool CheckString(string s)
+    {
+        for (int i = 1; i < s.Length; i++)
+            if (s[i] == 'a' && s[i - 1] == 'b')
+                return false;
+
+        return true;
+    }
+
     public int PasswordStrength(string password)
     {
         var hashSet = new HashSet<char>();
